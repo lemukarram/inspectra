@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, JSON, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 
@@ -7,14 +8,31 @@ class WIRSession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, unique=True, index=True)
+    session_name = Column(String, nullable=True) # User-defined name for the session
     status = Column(String, default="INITIALIZED") # INITIALIZED, ITP_EXTRACTED, HUMAN_VERIFIED, FINALIZED
+    current_step = Column(Integer, default=1)
     state = Column(JSON, default={}) # To store state machine data as JSONB
     
     itp_filename = Column(String, nullable=True)
     wir_sample_filename = Column(String, nullable=True)
+    mes_filename = Column(String, nullable=True)
     
-    # Store extracted data for Step 1
-    extracted_checklist = Column(JSON, default=[])
+    # Relationship to checklist items
+    checklist_items = relationship("ChecklistItem", back_populates="session", cascade="all, delete-orphan")
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class ChecklistItem(Base):
+    __tablename__ = "checklist_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, ForeignKey("wir_sessions.session_id"))
+    item_number = Column(String, nullable=True)
+    item_text = Column(String) # Previously 'activity'
+    acceptance_criteria = Column(String)
+    control_point = Column(String, nullable=True) # Previously 'reference'
+    procedure_text = Column(String, nullable=True)
+    safety_text = Column(String, nullable=True)
+    
+    session = relationship("WIRSession", back_populates="checklist_items")
