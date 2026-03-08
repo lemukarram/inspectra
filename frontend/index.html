@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspectra AI - WIR Inspector</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            margin-top: 50px;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .checklist-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background-color: white;
+        }
+        #loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary fw-bold">Inspectra AI</h1>
+        <p class="lead">Step 1: ITP to WIR Checklist Processor</p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card mb-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Initialize WIR Session</h5>
+        </div>
+        <div class="card-body">
+            <form id="uploadForm">
+                <div class="mb-3">
+                    <label for="itpFile" class="form-label">Upload ITP Document (PDF)</label>
+                    <input class="form-control" type="file" id="itpFile" accept=".pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label for="wirSampleFile" class="form-label">Upload WIR Sample Template (PDF)</label>
+                    <input class="form-control" type="file" id="wirSampleFile" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Process Documents</button>
+            </form>
+            
+            <!-- Loading Indicator -->
+            <div id="loading" class="text-center mt-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Analyzing documents with Gemini AI...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" style="display: none;">
+        <h3 class="mb-3">Extracted Checklist <span class="badge bg-success fs-6 align-middle" id="sessionIdBadge"></span></h3>
+        <div id="checklistContainer">
+            <!-- Checklist items will be injected here via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Application JS -->
+<script src="app.js"></script>
+
+</body>
+</html>
