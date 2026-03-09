@@ -8,6 +8,7 @@ from database import engine, get_db, Base
 from services.itp_processor import ITPProcessor
 from services.mes_processor import MESProcessor
 from services.drawing_processor import DrawingProcessor # New import
+from utils import validate_document_alignment # New import
 import os
 import time
 import logging
@@ -84,13 +85,15 @@ class WIRSessionSchema(BaseModel):
     id: int
     session_id: str
     session_name: Optional[str] = None
+    master_discipline: Optional[str] = None  # New field
+    master_work_type: Optional[str] = None   # New field
     status: str
     current_step: int
     created_at: str
-    grid_lines: Optional[List[str]] = None # New field
-    levels: Optional[List[str]] = None     # New field
-    zone: Optional[str] = None             # New field
-    drawing_filename: Optional[str] = None # New field
+    grid_lines: Optional[List[str]] = None
+    levels: Optional[List[str]] = None
+    zone: Optional[str] = None
+    drawing_filename: Optional[str] = None
     class Config:
         from_attributes = True
 
@@ -122,31 +125,46 @@ async def initialize_session(
     )
     
     db.add(session)
-    db.commit()
-    db.refresh(session)
-    
-    # Use global itp_processor
-    extracted_checklist = await itp_processor.process(itp_path, wir_path)
-    
-    for item in extracted_checklist:
-        db_item = models.ChecklistItem(
-            session_id=session_id,
-            item_number=item.get("item_number"),
-            item_text=item.get("activity") or item.get("item_text") or "N/A",
-            acceptance_criteria=item.get("acceptance_criteria") or "N/A",
-            control_point=item.get("reference") or item.get("control_point") or "N/A"
-        )
-        db.add(db_item)
-    
-    session.status = "ITP_EXTRACTED"
-    db.commit()
-    db.refresh(session)
-    
-    return {
-        "session_id": session_id, 
-        "session_name": session_name, 
-        "checklist": [ChecklistItemSchema.from_orm(it) for it in session.checklist_items]
-    }
+    # Commit here to get session.id for potential error handling later if needed,
+    # though it will be refreshed below.
+    db.commit() 
+    db.refresh(session) # Refresh to get any default values or IDs
+
+    try:
+        # Use global itp_processor
+        extracted_data = await itp_processor.process(itp_path, wir_path)
+        
+        # Store master discipline and work type
+        session.master_discipline = extracted_data["master_discipline"]
+        session.master_work_type = extracted_data["master_work_type"]
+
+        extracted_checklist = extracted_data["checklist_items"]
+        
+        for item in extracted_checklist:
+            db_item = models.ChecklistItem(
+                session_id=session_id,
+                item_number=item.get("item_number"),
+                item_text=item.get("activity") or item.get("item_text") or "N/A",
+                acceptance_criteria=item.get("acceptance_criteria") or "N/A",
+                control_point=item.get("reference") or item.get("control_point") or "N/A"
+            )
+            db.add(db_item)
+        
+        session.status = "ITP_EXTRACTED"
+        db.commit()
+        db.refresh(session)
+        
+        return {
+            "session_id": session_id, 
+            "session_name": session_name,
+            "master_discipline": session.master_discipline, # Include in response
+            "master_work_type": session.master_work_type,   # Include in response
+            "checklist": [ChecklistItemSchema.from_orm(it) for it in session.checklist_items]
+        }
+    except Exception as e:
+        logger.error(f"Error during ITP processing: {str(e)}")
+        db.rollback() # Rollback session creation if ITP processing fails
+        raise HTTPException(status_code=500, detail=f"ITP processing failed: {str(e)}")
 
 @app.post("/wir/session/{session_id}/step2")
 async def process_step2(
@@ -178,12 +196,25 @@ async def process_step2(
         items = db.query(models.ChecklistItem).filter(models.WIRSession.session_id == session_id).all()
         checklist_dicts = [{"id": item.id, "item_number": item.item_number, "item_text": item.item_text, "acceptance_criteria": item.acceptance_criteria} for item in items]
         
-        # Process with AI
+        # Process with AI to extract MES data including discipline/work_type
         logger.info(f"Starting MES enrichment for session {session_id}")
-        enriched_data = await mes_processor.process(mes_path, session.wir_sample_filename, checklist_dicts)
+        enriched_data_response = await mes_processor.process(mes_path, session.wir_sample_filename, checklist_dicts)
         
+        extracted_discipline = enriched_data_response["extracted_discipline"]
+        extracted_work_type = enriched_data_response["extracted_work_type"]
+        enriched_checklist_items = enriched_data_response["enriched_checklist_items"]
+
+        # Validate document alignment
+        from utils import validate_document_alignment # Import here to avoid circular dependency
+        validate_document_alignment(
+            session=session,
+            document_type="Method Statement",
+            extracted_discipline=extracted_discipline,
+            extracted_work_type=extracted_work_type
+        )
+
         # Update DB with enriched data
-        for ed in enriched_data:
+        for ed in enriched_checklist_items:
             item_id = ed.get("id")
             if item_id:
                 db_item = db.query(models.ChecklistItem).filter(models.ChecklistItem.id == item_id).first()
@@ -218,7 +249,7 @@ async def process_step3(
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Ensure previous steps are completed or verified
-    if session.status not in ["MES_EXTRACTED", "STEP_2_VERIFIED"]:
+    if session.status not in ["MES_EXTRACTED", "STEP_2_VERIFIED", "DRAWING_EXTRACTED"]:
         raise HTTPException(
             status_code=400, 
             detail=f"Session not ready for Step 3. Current status: {session.status}"
@@ -253,16 +284,27 @@ async def process_step3(
         
         # Process with AI Vision
         logger.info(f"Starting Drawing & Location analysis for session {session_id}")
-        extracted_location_data = await drawing_processor.process(
+        extracted_drawing_data = await drawing_processor.process(
             drawing_path, 
             session.wir_sample_filename, 
             checklist_dicts
         )
         
+        extracted_discipline = extracted_drawing_data["extracted_discipline"]
+        extracted_work_type = extracted_drawing_data["extracted_work_type"]
+
+        # Validate document alignment
+        validate_document_alignment(
+            session=session,
+            document_type="Drawing",
+            extracted_discipline=extracted_discipline,
+            extracted_work_type=extracted_work_type
+        )
+
         # Update DB with extracted location data
-        session.grid_lines = extracted_location_data.get("grid_lines")
-        session.levels = extracted_location_data.get("levels")
-        session.zone = extracted_location_data.get("zone")
+        session.grid_lines = extracted_drawing_data.get("grid_lines")
+        session.levels = extracted_drawing_data.get("levels")
+        session.zone = extracted_drawing_data.get("zone")
         
         session.current_step = 3
         session.status = "DRAWING_EXTRACTED" # New status
@@ -272,6 +314,10 @@ async def process_step3(
         return {
             "status": "success", 
             "session_id": session.session_id,
+            "master_discipline": session.master_discipline, # Include in response
+            "master_work_type": session.master_work_type,   # Include in response
+            "extracted_discipline": extracted_discipline,   # For frontend display
+            "extracted_work_type": extracted_work_type,     # For frontend display
             "grid_lines": session.grid_lines,
             "levels": session.levels,
             "zone": session.zone

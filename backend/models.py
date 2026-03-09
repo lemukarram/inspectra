@@ -10,6 +10,8 @@ class WIRSession(Base):
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, unique=True, index=True)
     session_name = Column(String, nullable=True) # User-defined name for the session
+    master_discipline = Column(String, nullable=True) # New field for work type lock
+    master_work_type = Column(String, nullable=True)  # New field for work type lock
     status = Column(String, default="INITIALIZED") # INITIALIZED, ITP_EXTRACTED, HUMAN_VERIFIED, FINALIZED
     current_step = Column(Integer, default=1)
     state = Column(JSON, default={}) # To store state machine data as JSONB

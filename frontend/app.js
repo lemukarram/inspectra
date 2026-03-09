@@ -30,7 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Global elements for notifications
     const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage'); // Assuming you'll add this to index.html
+    const successMessage = document.getElementById('successMessage');
+    const masterDisciplineBadge = document.getElementById('masterDisciplineBadge');
+    const masterWorkTypeBadge = document.getElementById('masterWorkTypeBadge');
 
     // Helper functions for messages
     function showMessage(element, message, type) {
@@ -197,8 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function resumeSession(sessionId, sessionName, step) {
         currentSessionId = sessionId;
         currentSessionName = sessionName;
-        document.getElementById('sessionIdBadge').textContent = `ID: ${sessionId.substring(0, 8)}...`;
-        document.getElementById('sessionNameBadge').textContent = sessionName || '';
+        // Badges are now updated in loadStep after fetching session details
         
         try {
             // Fetch session details and checklist within loadStep for consistency
@@ -246,6 +247,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update step header badges
         document.getElementById('sessionIdBadge').textContent = `ID: ${session.session_id.substring(0, 8)}...`;
         document.getElementById('sessionNameBadge').textContent = session.session_name || '';
+
+        if (session.master_discipline) {
+            masterDisciplineBadge.textContent = `Discipline: ${session.master_discipline}`;
+            masterDisciplineBadge.style.display = 'inline-block';
+        } else {
+            masterDisciplineBadge.style.display = 'none';
+        }
+        if (session.master_work_type) {
+            masterWorkTypeBadge.textContent = `Work Type: ${session.master_work_type}`;
+            masterWorkTypeBadge.style.display = 'inline-block';
+        } else {
+            masterWorkTypeBadge.style.display = 'none';
+        }
 
         // Update step navigation buttons based on session state
         updateStepNavigation(session.current_step);
@@ -332,9 +346,8 @@ document.addEventListener('DOMContentLoaded', function() {
             currentChecklist = data.checklist;
             sessionStatus = "ITP_EXTRACTED";
             
-            document.getElementById('sessionIdBadge').textContent = `ID: ${currentSessionId.substring(0, 8)}...`;
-            document.getElementById('sessionNameBadge').textContent = currentSessionName || '';
-            
+            // All session details (including master discipline/work type) will be
+            // fetched and displayed by loadStep(1)
             loadStep(1);
         } catch (error) {
             alert("An error occurred while processing documents.");
