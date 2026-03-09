@@ -10,6 +10,7 @@ class MESProcessor:
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
         self.client = genai.Client(api_key=api_key)
+        self.model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
     async def process(self, mes_pdf_path: str, wir_sample_pdf_path: str, checklist_items: List[Dict]) -> List[Dict]:
         """
@@ -71,7 +72,7 @@ class MESProcessor:
         """
 
         response = self.client.models.generate_content(
-            model='gemini-2.5-flash',
+            model=self.model,
             contents=prompt
         )
         

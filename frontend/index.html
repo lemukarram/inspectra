@@ -145,6 +145,63 @@
         </div>
     </div>
 
+    <!-- Step 3 Upload Section -->
+    <div id="step3UploadSection" style="display: none;">
+        <div class="card mb-5">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Step 3: Drawing & Location Processor</h5>
+            </div>
+            <div class="card-body">
+                <p>Upload the 2D drawing to extract grid lines, levels, and zone information.</p>
+                <form id="uploadDrawingForm">
+                    <div class="mb-3">
+                        <label for="drawingFile" class="form-label">Upload 2D Drawing (PDF/Image)</label>
+                        <input class="form-control" type="file" id="drawingFile" accept=".pdf,.jpg,.jpeg,.png" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Process Drawing with AI</button>
+                </form>
+                
+                <div id="loadingDrawing" class="text-center mt-4 loading-div">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <p class="mt-2 text-muted">Extracting Location Data from Drawing...</p>
+                </div>
+
+                <hr class="my-4">
+                <h6 class="text-primary mb-3">Extracted Location Data:</h6>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Grid Lines:</label>
+                        <p id="displayGridLines" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Levels/Elevations:</label>
+                        <p id="displayLevels" class="form-control-plaintext"></p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Zone/Area Name:</label>
+                    <p id="displayZone" class="form-control-plaintext"></p>
+                </div>
+
+                <hr class="my-4">
+                <h6 class="text-primary mb-3">Manual Correction (Edit if needed):</h6>
+                <div class="mb-3">
+                    <label for="editGridLines" class="form-label">Edit Grid Lines (comma-separated):</label>
+                    <input type="text" class="form-control" id="editGridLines">
+                </div>
+                <div class="mb-3">
+                    <label for="editLevels" class="form-label">Edit Levels (comma-separated):</label>
+                    <input type="text" class="form-control" id="editLevels">
+                </div>
+                <div class="mb-3">
+                    <label for="editZone" class="form-label">Edit Zone/Area Name:</label>
+                    <input type="text" class="form-control" id="editZone">
+                </div>
+                <button id="updateLocationDataBtn" class="btn btn-info mt-2">Update Location Details</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Results Section (Checklist Review) -->
     <div id="resultsSection" style="display: none;">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -178,6 +235,11 @@
             </div>
         </div>
     </div>
+    </div>
+    
+    <!-- Global Messages -->
+    <div id="error-message" class="alert alert-danger hidden" role="alert" style="display: none;"></div>
+    <div id="success-message" class="alert alert-success hidden" role="alert" style="display: none;"></div>
 </div>
 
 <!-- Edit Item Modal -->

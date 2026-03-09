@@ -16,9 +16,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const BASE_URL = 'http://localhost:8000';
 
+    // New Step 3 elements
+    const step3UploadSection = document.getElementById('step3UploadSection');
+    const uploadDrawingForm = document.getElementById('uploadDrawingForm');
+    const loadingDrawing = document.getElementById('loadingDrawing');
+    const displayGridLines = document.getElementById('displayGridLines');
+    const displayLevels = document.getElementById('displayLevels');
+    const displayZone = document.getElementById('displayZone');
+    const editGridLines = document.getElementById('editGridLines');
+    const editLevels = document.getElementById('editLevels');
+    const editZone = document.getElementById('editZone');
+    const updateLocationDataBtn = document.getElementById('updateLocationDataBtn');
+    
+    // Global elements for notifications
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage'); // Assuming you'll add this to index.html
+
+    // Helper functions for messages
+    function showMessage(element, message, type) {
+        if (element) {
+            element.textContent = message;
+            element.className = `alert alert-${type}`;
+            element.style.display = 'block';
+        }
+    }
+
+    function showError(message) {
+        showMessage(errorMessage, message, 'danger');
+    }
+
+    function showSuccess(message) {
+        showMessage(successMessage, message, 'success');
+    }
+
+    function clearMessages() {
+        if (errorMessage) errorMessage.style.display = 'none';
+        if (successMessage) successMessage.style.display = 'none';
+    }
+
     // Helper to switch sections
     function showSection(sectionId) {
-        const sections = ['newSessionSection', 'explorerSection', 'resultsSection', 'step2UploadSection'];
+        const sections = ['newSessionSection', 'explorerSection', 'resultsSection', 'step2UploadSection', 'step3UploadSection']; // Added step3UploadSection
         sections.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = (id === sectionId) ? 'block' : 'none';
@@ -26,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show/hide step header
         const stepHeader = document.getElementById('stepHeader');
-        if (sectionId === 'resultsSection' || sectionId === 'step2UploadSection') {
+        if (sectionId === 'resultsSection' || sectionId === 'step2UploadSection' || sectionId === 'step3UploadSection') { // Added step3UploadSection
             stepHeader.style.display = 'flex';
         } else {
             stepHeader.style.display = 'none';
@@ -53,13 +91,60 @@ document.addEventListener('DOMContentLoaded', function() {
         setActiveNav('navSessionExplorer');
     });
 
-    document.getElementById('btnStep1')?.addEventListener('click', () => {
-        if (currentSessionId) loadStep(1);
-    });
+    // New Step 3 navigation button handler
+    // This button will be dynamically added/updated by updateStepNavigation
+    // No need for a global btnStep3 reference here, updateStepNavigation handles creation
+    
+    function updateStepNavigation(sessionCurrentStep) {
+        const btnStep1 = document.getElementById('btnStep1');
+        const btnStep2 = document.getElementById('btnStep2');
+        let btnStep3 = document.getElementById('btnStep3'); // Re-get in case it was just created
 
-    document.getElementById('btnStep2')?.addEventListener('click', () => {
-        if (currentSessionId && currentStep >= 2) loadStep(2);
-    });
+        // Create Step 3 button if it doesn't exist
+        if (!btnStep3) {
+            btnStep3 = document.createElement('button');
+            btnStep3.id = 'btnStep3';
+            btnStep3.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'me-2');
+            btnStep3.textContent = 'Step 3 (Drawing)';
+            document.getElementById('stepNavigation').appendChild(btnStep3);
+            btnStep3.addEventListener('click', () => {
+                if (currentSessionId && currentStep >= 3) loadStep(3);
+            });
+        }
+
+        // Reset button styles
+        btnStep1.classList.remove('btn-primary', 'btn-outline-primary', 'active');
+        btnStep2.classList.remove('btn-primary', 'btn-outline-primary', 'active');
+        btnStep3.classList.remove('btn-primary', 'btn-outline-primary', 'active');
+
+        // Set default states
+        btnStep1.classList.add('btn-outline-primary');
+        btnStep2.classList.add('btn-outline-primary');
+        btnStep3.classList.add('btn-outline-primary');
+
+        // Enable/Disable and Highlight based on session state
+        btnStep1.disabled = false;
+        if (sessionCurrentStep >= 1) {
+            btnStep1.classList.remove('btn-outline-primary');
+            btnStep1.classList.add('btn-primary');
+        }
+        if (sessionCurrentStep === 1) btnStep1.classList.add('active');
+
+
+        btnStep2.disabled = sessionCurrentStep < 2;
+        if (sessionCurrentStep >= 2) {
+            btnStep2.classList.remove('btn-outline-primary');
+            btnStep2.classList.add('btn-primary');
+        }
+        if (sessionCurrentStep === 2) btnStep2.classList.add('active');
+
+        btnStep3.disabled = sessionCurrentStep < 3;
+        if (sessionCurrentStep >= 3) {
+            btnStep3.classList.remove('btn-outline-primary');
+            btnStep3.classList.add('btn-primary');
+        }
+        if (sessionCurrentStep === 3) btnStep3.classList.add('active');
+    }
 
     // Session Explorer
     async function loadSessions() {
@@ -116,29 +201,61 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sessionNameBadge').textContent = sessionName || '';
         
         try {
-            const sessionRes = await fetch(`${BASE_URL}/sessions/${sessionId}`);
-            const sessionData = await sessionRes.json();
-            sessionStatus = sessionData.status;
-            
-            const checklistRes = await fetch(`${BASE_URL}/sessions/${sessionId}/checklist`);
-            currentChecklist = await checklistRes.json();
-            
-            loadStep(step || sessionData.current_step);
+            // Fetch session details and checklist within loadStep for consistency
+            loadStep(step || currentStep); // Pass initial step
         } catch (error) {
-            alert("Error resuming session.");
+            showError("Error resuming session: " + error.message);
+        }
+    }
+
+    async function fetchSessionDetails(sessionId) {
+        try {
+            const response = await fetch(`${BASE_URL}/sessions/${sessionId}`);
+            if (!response.ok) throw new Error("Failed to fetch session details.");
+            return await response.json();
+        } catch (error) {
+            showError(error.message);
+            return null;
+        }
+    }
+
+    async function fetchChecklist(sessionId) {
+        try {
+            const response = await fetch(`${BASE_URL}/sessions/${sessionId}/checklist`);
+            if (!response.ok) throw new Error("Failed to fetch checklist.");
+            return await response.json();
+        } catch (error) {
+            showError(error.message);
+            return [];
         }
     }
 
     async function loadStep(stepNumber) {
         currentStep = stepNumber;
-        document.getElementById('btnStep2').disabled = (stepNumber < 2 && currentStep < 2 && sessionStatus !== 'STEP_1_VERIFIED');
+        clearMessages(); // Clear any previous messages
         
+        // Fetch latest session details to ensure UI is up-to-date
+        const session = await fetchSessionDetails(currentSessionId);
+        if (!session) {
+            showError("Failed to load session details.");
+            return;
+        }
+        sessionStatus = session.status;
+        currentChecklist = await fetchChecklist(currentSessionId); // Fetch latest checklist
+
+        // Update step header badges
+        document.getElementById('sessionIdBadge').textContent = `ID: ${session.session_id.substring(0, 8)}...`;
+        document.getElementById('sessionNameBadge').textContent = session.session_name || '';
+
+        // Update step navigation buttons based on session state
+        updateStepNavigation(session.current_step);
+
+        // Logic based on stepNumber
         if (stepNumber === 1) {
             document.getElementById('stepTitle').textContent = "Step 1: ITP Checklist";
-            document.getElementById('btnStep1').classList.replace('btn-outline-primary', 'btn-primary');
-            document.getElementById('btnStep2').classList.replace('btn-primary', 'btn-outline-primary');
+            // No need to set button classes here, updateStepNavigation handles it
             
-            // Hide Step 2 columns
+            // Hide Step 2 & 3 specific columns/fields
             document.querySelectorAll('.step2-col').forEach(col => col.style.display = 'none');
             document.getElementById('step2EditFields').style.display = 'none';
             document.getElementById('regenerateBtn').style.display = 'none';
@@ -146,24 +263,43 @@ document.addEventListener('DOMContentLoaded', function() {
             renderChecklist(currentChecklist);
             showSection('resultsSection');
         } 
-        else if (stepNumber === 2 || stepNumber == null) {
+        else if (stepNumber === 2) { 
             document.getElementById('stepTitle').textContent = "Step 2: Enriched Checklist (MES)";
-            document.getElementById('btnStep2').classList.replace('btn-outline-primary', 'btn-primary');
-            document.getElementById('btnStep1').classList.replace('btn-primary', 'btn-outline-primary');
-            document.getElementById('btnStep2').disabled = false;
+            // No need to set button classes here, updateStepNavigation handles it
             
             // Show Step 2 columns
             document.querySelectorAll('.step2-col').forEach(col => col.style.display = 'table-cell');
             document.getElementById('step2EditFields').style.display = 'block';
             
-            // Check if MES is already extracted
-            if (sessionStatus === 'MES_EXTRACTED' || currentChecklist.some(item => item.procedure_text && item.procedure_text !== 'N/A')) {
+            // Check if MES is already extracted or verified
+            if (sessionStatus === 'MES_EXTRACTED' || sessionStatus === 'STEP_2_VERIFIED' || currentChecklist.some(item => item.procedure_text && item.procedure_text !== 'N/A')) {
                 document.getElementById('regenerateBtn').style.display = 'inline-block';
                 renderChecklist(currentChecklist);
                 showSection('resultsSection');
             } else {
                 showSection('step2UploadSection');
             }
+        }
+        else if (stepNumber === 3) {
+            document.getElementById('stepTitle').textContent = "Step 3: Drawing & Location Processor";
+            // No need to set button classes here, updateStepNavigation handles it
+            
+            // Hide Step 2 columns
+            document.querySelectorAll('.step2-col').forEach(col => col.style.display = 'none');
+            document.getElementById('step2EditFields').style.display = 'none';
+            document.getElementById('regenerateBtn').style.display = 'none'; // No regenerate for step 3 yet
+
+            // Display extracted data
+            displayGridLines.textContent = session.grid_lines ? session.grid_lines.join(', ') : 'N/A';
+            displayLevels.textContent = session.levels ? session.levels.join(', ') : 'N/A';
+            displayZone.textContent = session.zone || 'N/A';
+
+            // Populate manual correction fields
+            editGridLines.value = session.grid_lines ? session.grid_lines.join(', ') : '';
+            editLevels.value = session.levels ? session.levels.join(', ') : '';
+            editZone.value = session.zone || '';
+            
+            showSection('step3UploadSection');
         }
     }
 
@@ -244,6 +380,47 @@ document.addEventListener('DOMContentLoaded', function() {
         showSection('step2UploadSection');
     });
 
+    // Step 3 Upload (Drawing)
+    uploadDrawingForm?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        clearMessages();
+        
+        const drawingFile = document.getElementById('drawingFile').files[0];
+        
+        if (!drawingFile) {
+            showError('Please select a drawing file.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('drawing_file', drawingFile);
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        
+        submitBtn.disabled = true;
+        loadingDrawing.style.display = 'block';
+
+        try {
+            const response = await fetch(`${BASE_URL}/wir/session/${currentSessionId}/step3`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to process drawing.');
+            }
+            showSuccess('Drawing processed successfully. Review extracted data below.');
+            // Update session details and UI
+            loadStep(3); // Reload step 3 to show updated data
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            submitBtn.disabled = false;
+            loadingDrawing.style.display = 'none';
+        }
+    });
+
+
     function renderChecklist(checklist) {
         const tableBody = document.getElementById('checklistTableBody');
         if (!tableBody) return;
@@ -281,6 +458,39 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', (e) => openEditModal(e.target.getAttribute('data-index'))));
         document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => deleteItem(e.target.getAttribute('data-index'))));
     }
+
+    // Event listener for manual location data update
+    updateLocationDataBtn?.addEventListener('click', async () => {
+        clearMessages();
+        
+        const updatedGridLines = editGridLines.value.split(',').map(s => s.trim()).filter(s => s);
+        const updatedLevels = editLevels.value.split(',').map(s => s.trim()).filter(s => s);
+        const updatedZone = editZone.value.trim();
+
+        // Display the updated values
+        displayGridLines.textContent = updatedGridLines.join(', ');
+        displayLevels.textContent = updatedLevels.join(', ');
+        displayZone.textContent = updatedZone;
+        showSuccess('Location data updated locally. (Backend update not yet implemented, refresh to revert)');
+
+        // Ideally, you'd make an API call here to persist changes:
+        // For example, a PATCH endpoint: /wir/session/{currentSessionId}/location
+        // try {
+        //     const response = await fetch(`${BASE_URL}/wir/session/${currentSessionId}/location`, {
+        //         method: 'PATCH',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify({ grid_lines: updatedGridLines, levels: updatedLevels, zone: updatedZone })
+        //     });
+        //     const data = await response.json();
+        //     if (!response.ok) {
+        //         throw new Error(data.detail || 'Failed to update location data.');
+        //     }
+        //     await fetchAndDisplaySession(currentSessionId); // Or just loadStep(3)
+        //     showSuccess('Location data updated successfully!');
+        // } catch (error) {
+        //     showError(error.message);
+        // }
+    });
 
     function openEditModal(index) {
         const item = currentChecklist[index];
@@ -355,12 +565,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStatus = 'STEP_1_VERIFIED';
                 loadStep(2);
             } else if (currentStep === 2) {
-                alert("Step 2 Verified! Workflow completed for now.");
+                showSuccess("Step 2 Verified! Moving to Step 3: Drawing & Location Processor.");
+                await fetch(`${BASE_URL}/wir/session/${currentSessionId}/step/3`, { method: 'PUT' });
+                sessionStatus = 'STEP_2_VERIFIED'; // Or 'MES_EXTRACTED', depending on backend's state after verification
+                loadStep(3); // Load step 3
+            } else if (currentStep === 3) {
+                showSuccess("Step 3 Verified! Workflow completed for now.");
                 loadSessions();
                 showSection('explorerSection');
             }
         } catch (error) {
-            alert("Failed to save changes.");
+            showError("Failed to save changes: " + error.message);
         } finally {
             saveBtn.disabled = false;
         }

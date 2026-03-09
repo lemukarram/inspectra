@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, JSON, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB # Import JSONB
 from database import Base
 
 class WIRSession(Base):
@@ -16,6 +17,13 @@ class WIRSession(Base):
     itp_filename = Column(String, nullable=True)
     wir_sample_filename = Column(String, nullable=True)
     mes_filename = Column(String, nullable=True)
+    drawing_filename = Column(String, nullable=True) # New field
+
+
+    # New fields for Drawing & Location Processor
+    grid_lines = Column(JSONB, nullable=True)
+    levels = Column(JSONB, nullable=True)
+    zone = Column(String, nullable=True)
     
     # Relationship to checklist items
     checklist_items = relationship("ChecklistItem", back_populates="session", cascade="all, delete-orphan")
@@ -36,3 +44,4 @@ class ChecklistItem(Base):
     safety_text = Column(String, nullable=True)
     
     session = relationship("WIRSession", back_populates="checklist_items")
+

@@ -7,23 +7,35 @@ import models
 from database import engine, get_db, Base
 from services.itp_processor import ITPProcessor
 from services.mes_processor import MESProcessor
+from services.drawing_processor import DrawingProcessor # New import
 import os
 import time
+import logging
 from sqlalchemy.exc import OperationalError
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
 from fastapi.middleware.cors import CORSMiddleware
+
+# Load environment variables from .env
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Global service instance to prevent multiple objects
 itp_processor = None
 mes_processor = None
+drawing_processor = None # New global instance
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize services
-    global itp_processor, mes_processor
+    global itp_processor, mes_processor, drawing_processor # Add drawing_processor
     itp_processor = ITPProcessor()
     mes_processor = MESProcessor()
+    drawing_processor = DrawingProcessor() # Initialize DrawingProcessor
     
     # Optional: Initial DB check/creation (though migrations are preferred)
     retries = 5
@@ -75,6 +87,10 @@ class WIRSessionSchema(BaseModel):
     status: str
     current_step: int
     created_at: str
+    grid_lines: Optional[List[str]] = None # New field
+    levels: Optional[List[str]] = None     # New field
+    zone: Optional[str] = None             # New field
+    drawing_filename: Optional[str] = None # New field
     class Config:
         from_attributes = True
 
@@ -138,6 +154,11 @@ async def process_step2(
     mes_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    global mes_processor
+    if not mes_processor:
+        logger.error("MESProcessor not initialized in lifespan")
+        mes_processor = MESProcessor()
+
     session = db.query(models.WIRSession).filter(models.WIRSession.session_id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -145,34 +166,120 @@ async def process_step2(
     os.makedirs("uploads", exist_ok=True)
     mes_path = f"uploads/{session_id}_mes.pdf"
     
-    with open(mes_path, "wb") as f:
-        f.write(await mes_file.read())
-        
-    session.mes_filename = mes_path
-    db.commit()
+    try:
+        content = await mes_file.read()
+        with open(mes_path, "wb") as f:
+            f.write(content)
+            
+        session.mes_filename = mes_path
+        db.commit()
 
-    # Get checklist items from DB
-    items = db.query(models.ChecklistItem).filter(models.ChecklistItem.session_id == session_id).all()
-    checklist_dicts = [{"id": item.id, "item_number": item.item_number, "item_text": item.item_text, "acceptance_criteria": item.acceptance_criteria} for item in items]
+        # Get checklist items from DB
+        items = db.query(models.ChecklistItem).filter(models.WIRSession.session_id == session_id).all()
+        checklist_dicts = [{"id": item.id, "item_number": item.item_number, "item_text": item.item_text, "acceptance_criteria": item.acceptance_criteria} for item in items]
+        
+        # Process with AI
+        logger.info(f"Starting MES enrichment for session {session_id}")
+        enriched_data = await mes_processor.process(mes_path, session.wir_sample_filename, checklist_dicts)
+        
+        # Update DB with enriched data
+        for ed in enriched_data:
+            item_id = ed.get("id")
+            if item_id:
+                db_item = db.query(models.ChecklistItem).filter(models.ChecklistItem.id == item_id).first()
+                if db_item:
+                    db_item.procedure_text = ed.get("procedure_text", "N/A")
+                    db_item.safety_text = ed.get("safety_text", "N/A")
+                    
+        session.current_step = 2
+        session.status = "MES_EXTRACTED"
+        db.commit()
+        
+        updated_items = db.query(models.ChecklistItem).filter(models.ChecklistItem.session_id == session_id).order_by(models.ChecklistItem.id.asc()).all()
+        return {"status": "success", "checklist": [ChecklistItemSchema.from_orm(it) for it in updated_items]}
+    except Exception as e:
+        logger.error(f"Error in Step 2: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"AI Enrichment failed: {str(e)}")
+
+@app.post("/wir/session/{session_id}/step3")
+async def process_step3(
+    session_id: str,
+    drawing_file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    global drawing_processor
+    if not drawing_processor:
+        logger.error("DrawingProcessor not initialized in lifespan")
+        drawing_processor = DrawingProcessor()
+
+    session = db.query(models.WIRSession).filter(models.WIRSession.session_id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
     
-    # Process with AI
-    enriched_data = await mes_processor.process(mes_path, session.wir_sample_filename, checklist_dicts)
-    
-    # Update DB with enriched data
-    for ed in enriched_data:
-        item_id = ed.get("id")
-        if item_id:
-            db_item = db.query(models.ChecklistItem).filter(models.ChecklistItem.id == item_id).first()
-            if db_item:
-                db_item.procedure_text = ed.get("procedure_text", "N/A")
-                db_item.safety_text = ed.get("safety_text", "N/A")
-                
-    session.current_step = 2
-    session.status = "MES_EXTRACTED"
-    db.commit()
-    
-    updated_items = db.query(models.ChecklistItem).filter(models.ChecklistItem.session_id == session_id).order_by(models.ChecklistItem.id.asc()).all()
-    return {"status": "success", "checklist": [ChecklistItemSchema.from_orm(it) for it in updated_items]}
+    # Ensure previous steps are completed or verified
+    if session.status not in ["MES_EXTRACTED", "STEP_2_VERIFIED"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Session not ready for Step 3. Current status: {session.status}"
+        )
+
+    os.makedirs("uploads", exist_ok=True)
+    # Determine file extension and path
+    file_extension = os.path.splitext(drawing_file.filename)[1].lower()
+    drawing_path = f"uploads/{session_id}_drawing{file_extension}" 
+
+    try:
+        content = await drawing_file.read()
+        with open(drawing_path, "wb") as f:
+            f.write(content)
+            
+        session.drawing_filename = drawing_path 
+        db.commit()
+
+        # Get checklist items for context
+        items = db.query(models.ChecklistItem).filter(models.ChecklistItem.session_id == session_id).all()
+        checklist_dicts = [
+            {
+                "id": item.id,
+                "item_number": item.item_number,
+                "item_text": item.item_text,
+                "acceptance_criteria": item.acceptance_criteria,
+                "control_point": item.control_point,
+                "procedure_text": item.procedure_text,
+                "safety_text": item.safety_text,
+            } for item in items
+        ]
+        
+        # Process with AI Vision
+        logger.info(f"Starting Drawing & Location analysis for session {session_id}")
+        extracted_location_data = await drawing_processor.process(
+            drawing_path, 
+            session.wir_sample_filename, 
+            checklist_dicts
+        )
+        
+        # Update DB with extracted location data
+        session.grid_lines = extracted_location_data.get("grid_lines")
+        session.levels = extracted_location_data.get("levels")
+        session.zone = extracted_location_data.get("zone")
+        
+        session.current_step = 3
+        session.status = "DRAWING_EXTRACTED" # New status
+        db.commit()
+        db.refresh(session)
+        
+        return {
+            "status": "success", 
+            "session_id": session.session_id,
+            "grid_lines": session.grid_lines,
+            "levels": session.levels,
+            "zone": session.zone
+        }
+    except Exception as e:
+        logger.error(f"Error in Step 3: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Drawing & Location analysis failed: {str(e)}")
 
 @app.put("/wir/session/{session_id}/step/{step_number}")
 def set_session_step(session_id: str, step_number: int, db: Session = Depends(get_db)):
@@ -212,6 +319,10 @@ def get_session(session_id: str, db: Session = Depends(get_db)):
         "itp_filename": session.itp_filename,
         "wir_sample_filename": session.wir_sample_filename,
         "mes_filename": session.mes_filename,
+        "drawing_filename": session.drawing_filename, # New field
+        "grid_lines": session.grid_lines,             # New field
+        "levels": session.levels,                     # New field
+        "zone": session.zone,                         # New field
         "created_at": session.created_at.isoformat() if session.created_at else None
     }
 
@@ -257,6 +368,8 @@ def verify_checklist(session_id: str, db: Session = Depends(get_db)):
         session.status = "STEP_1_VERIFIED"
     elif session.current_step == 2:
         session.status = "STEP_2_VERIFIED"
+    elif session.current_step == 3: # New verification step
+        session.status = "STEP_3_VERIFIED"
         
     db.commit()
     return {"status": "success"}
@@ -264,3 +377,4 @@ def verify_checklist(session_id: str, db: Session = Depends(get_db)):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+

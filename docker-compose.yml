@@ -22,6 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/wir_inspector
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+    env_file:
+      - .env
     depends_on:
       - db
     networks:
