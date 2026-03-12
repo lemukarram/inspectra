@@ -2,10 +2,14 @@ import fitz # PyMuPDF
 from google import genai
 import os
 import json
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 import logging
-from fastapi import HTTPException # New Import
+from fastapi import HTTPException
+import PIL.Image
+import io
 
+#settings for logger
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DrawingProcessor:
@@ -14,12 +18,14 @@ class DrawingProcessor:
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set for DrawingProcessor")
         self.client = genai.Client(api_key=api_key)
-        self.model = os.getenv("GEMINI_VISION_MODEL", "gemini-pro-vision") # Using a vision model
+        self.model_id = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash")
 
     async def process(self, 
                       drawing_path: str, 
                       wir_sample_path: str, 
                       checklist_items: List[Dict]) -> Dict[str, Union[str, List[str]]]:
+        
+
         """
         Step 3: Drawing & Location Processor
         Extracts discipline, work type, and location details (grid lines, levels, zones) from a 2D drawing (PDF/Image)
@@ -34,21 +40,37 @@ class DrawingProcessor:
             Dict: A dictionary containing extracted 'extracted_discipline', 'extracted_work_type', 'grid_lines', 'levels', and 'zone'.
         """
         
-        # 1. Prepare images from drawing for Gemini Vision
-        # If PDF, convert to image. For simplicity, we'll assume the first page for now.
-        image_parts = self._extract_image_from_pdf(drawing_path)
+        # Prepare image from drawing for Gemini Vision
+        pil_image = None
+        file_extension = os.path.splitext(drawing_path)[1].lower()
+        if file_extension == ".pdf":
+            img_bytes = self._extract_image_from_pdf(drawing_path)
+            if img_bytes:
+                try:
+                    pil_image = PIL.Image.open(io.BytesIO(img_bytes))
+                except Exception as e:
+                    logger.error(f"Failed to convert PDF image bytes to PIL Image for {drawing_path}: {e}")
+                    raise HTTPException(status_code=400, detail=f"Failed to process drawing PDF image: {str(e)}")
+            else:
+                raise HTTPException(status_code=400, detail="No images could be extracted from the provided PDF drawing.")
+        elif file_extension in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"]:
+            try:
+                pil_image = PIL.Image.open(drawing_path)
+            except Exception as e:
+                logger.error(f"Failed to open image file {drawing_path}: {e}")
+                raise HTTPException(status_code=400, detail=f"Failed to open drawing image: {str(e)}")
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported drawing file type: {file_extension}")
 
-        if not image_parts:
-            logger.warning(f"No images extracted from drawing: {drawing_path}")
+        if not pil_image:
             # Return a structure consistent with expected output, with N/A for discipline/work_type
             return {"extracted_discipline": "N/A", "extracted_work_type": "N/A", "grid_lines": [], "levels": [], "zone": None}
 
         # 2. Extract text from WIR Sample (for context)
         wir_sample_text = self._extract_text_from_pdf(wir_sample_path)
-        
         # 3. Construct the prompt for Gemini Vision
         # Provide both image and text context
-        prompt_parts = [
+        prompt_parts_text = [
             "You are a Senior Construction Engineer at MBL. Analyze the provided 2D construction drawing.",
             "Identify the overall 'Discipline' (e.g., Civil, Electrical, Mechanical, Structural, Architectural) and the specific 'Work Type' (e.g., Concrete Installation, Small Power Wiring, HVAC Ductwork, Steel Erection, Wall Partitioning) that this drawing primarily covers, typically found in the title block or general notes. These should be high-level and clear.",
             "Additionally, identify the master location details for the overall drawing based on typical construction drawing conventions.",
@@ -58,21 +80,23 @@ class DrawingProcessor:
             "Also, here are the current checklist items which may provide additional context, though focus on master drawing locations:",
             json.dumps(checklist_items),
             "Output the results as a JSON object with the following keys: 'extracted_discipline' (string), 'extracted_work_type' (string), 'grid_lines' (list of strings), 'levels' (list of strings), and 'zone' (string). Return ONLY the JSON object.",
-            *image_parts # Add image data for multimodal input
         ]
 
+        contents_for_gemini = prompt_parts_text + [pil_image] # Add PIL image directly
+
         try:
-            response = await self.client.models.generate_content_async(
-                model=self.model,
-                contents=prompt_parts
+            #response = await self.client.models.generate_content_async(
+            response = await self.client.aio.models.generate_content(
+                model=self.model_id,
+                contents=contents_for_gemini
             )
             
+
             content = response.text.strip()
             if content.startswith("```json"):
                 content = content[7:-3].strip()
             elif content.startswith("```"):
                 content = content[3:-3].strip()
-
             result = json.loads(content)
             
             # Basic validation of the result structure
@@ -101,32 +125,24 @@ class DrawingProcessor:
             logger.error(f"Error during Gemini Vision analysis for drawing {drawing_path}: {e}")
             raise HTTPException(status_code=500, detail=f"Drawing & Location analysis failed: {str(e)}")
 
-    def _extract_image_from_pdf(self, pdf_path: str, page_number: int = 0) -> List[Dict]:
+    def _extract_image_from_pdf(self, pdf_path: str, page_number: int = 0) -> Optional[bytes]:
         """
-        Extracts the first page of a PDF as an image for Gemini Vision.
-        Returns a list of dictionaries in the format expected by genai.upload_file.
+        Extracts the first page of a PDF as PNG bytes.
         """
         try:
             doc = fitz.open(pdf_path)
             if page_number >= len(doc):
-                logger.warning(f"Page {page_number} not found in PDF {pdf_path}.")
-                return []
+                return None
             
             page = doc.load_page(page_number)
             pix = page.get_pixmap()
             
             # Convert to bytes
             img_bytes = pix.tobytes("png")
-
-            return [
-                {
-                    "mime_type": "image/png",
-                    "data": img_bytes
-                }
-            ]
+            return img_bytes
         except Exception as e:
             logger.error(f"Failed to extract image from PDF {pdf_path}: {e}")
-            return []
+            return None
 
     def _extract_text_from_pdf(self, pdf_path: str) -> str:
         """Extract text using PyMuPDF."""

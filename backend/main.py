@@ -18,6 +18,11 @@ from dotenv import load_dotenv
 
 from fastapi.middleware.cors import CORSMiddleware
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load environment variables from .env
 load_dotenv()
 
@@ -239,6 +244,7 @@ async def process_step3(
     drawing_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    
     global drawing_processor
     if not drawing_processor:
         logger.error("DrawingProcessor not initialized in lifespan")
@@ -259,9 +265,10 @@ async def process_step3(
     # Determine file extension and path
     file_extension = os.path.splitext(drawing_file.filename)[1].lower()
     drawing_path = f"uploads/{session_id}_drawing{file_extension}" 
-
+    
     try:
         content = await drawing_file.read()
+        
         with open(drawing_path, "wb") as f:
             f.write(content)
             

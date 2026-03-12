@@ -110,9 +110,20 @@ document.addEventListener('DOMContentLoaded', function() {
             btnStep3.textContent = 'Step 3 (Drawing)';
             document.getElementById('stepNavigation').appendChild(btnStep3);
             btnStep3.addEventListener('click', () => {
-                if (currentSessionId && currentStep >= 3) loadStep(3);
+                // Ensure there's an active session before attempting to load a step
+                if (currentSessionId) loadStep(3);
             });
         }
+        
+        // Add event listeners for Step 1 and Step 2 navigation buttons
+        // These will allow users to revisit previous steps
+        btnStep1.addEventListener('click', () => {
+            if (currentSessionId) loadStep(1);
+        });
+
+        btnStep2.addEventListener('click', () => {
+            if (currentSessionId) loadStep(2);
+        });
 
         // Reset button styles
         btnStep1.classList.remove('btn-primary', 'btn-outline-primary', 'active');
