@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Inspection Request</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { background: #e0e0e0; font-family: Arial, sans-serif; font-size: 11px; }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    margin: 20px auto;
+    padding: 8mm 8mm 6mm 8mm;
+    box-shadow: 0 0 12px rgba(0,0,0,0.3);
+    position: relative;
+  }
+
+  /* ── HEADER ── */
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #333;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+  }
+  .logo-parsons { font-size: 22px; font-weight: 900; color: #e2001a; letter-spacing: -1px; }
+  .logo-parsons span { color: #e2001a; }
+  .logo-dar { font-size: 26px; font-weight: 300; color: #333; letter-spacing: 2px; border: 2px solid #555; padding: 1px 10px; }
+  .logo-mbl { text-align: right; font-size: 9px; color: #333; }
+  .logo-mbl .mbl-title { font-size: 20px; font-weight: 900; color: #c8a000; letter-spacing: 1px; }
+  .logo-mbl .mbl-sub { font-size: 8px; color: #555; }
+
+  /* ── FORM TITLE ── */
+  .form-title {
+    background: #8B8B8B;
+    color: #fff;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 5px 0;
+    margin-bottom: 0;
+    letter-spacing: 1px;
+  }
+
+  /* ── TABLE STRUCTURE ── */
+  .wir-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+  }
+  .wir-table td, .wir-table th {
+    border: 1px solid #555;
+    padding: 3px 5px;
+    vertical-align: middle;
+  }
+  .label-cell {
+    background: #d0d0d0;
+    font-weight: bold;
+    white-space: nowrap;
+    width: auto;
+  }
+  .value-cell {
+    background: #fff;
+    min-width: 60px;
+  }
+  .section-header {
+    background: #d0d0d0;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 3px 5px;
+  }
+
+  /* ── DISCIPLINE CHECKBOXES ── */
+  .disc-table { width: 100%; border-collapse: collapse; }
+  .disc-table td { border: none; padding: 1px 4px; font-size: 10.5px; white-space: nowrap; }
+  .cb-wrap { display: flex; align-items: center; gap: 4px; }
+  .cb-box {
+    width: 13px; height: 13px; border: 1.5px solid #333;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold; flex-shrink: 0; background: #fff;
+  }
+  .cb-box.checked::after { content: "✕"; color: #000; font-size: 10px; }
+
+  /* ── DESCRIPTION BOX ── */
+  .desc-box {
+    border: 1px solid #555;
+    padding: 4px 6px;
+    min-height: 38px;
+    background: #fff;
+    font-size: 10.5px;
+  }
+
+  /* ── ATTACHED ITEMS ── */
+  .attach-row { display: flex; align-items: center; justify-content: space-between; padding: 1px 0; }
+
+  /* ── SIGNATURE SECTIONS ── */
+  .sig-section {
+    border: 1px solid #555;
+    margin-top: 0;
+  }
+  .sig-header {
+    background: #d0d0d0;
+    font-weight: bold;
+    padding: 3px 5px;
+    border-bottom: 1px solid #555;
+    font-size: 10.5px;
+  }
+  .sig-body { padding: 3px 5px; }
+  .sig-row { display: flex; gap: 0; }
+  .sig-field { flex: 1; display: flex; align-items: center; padding: 2px 4px; gap: 4px; border-right: 1px solid #555; font-size: 10.5px; }
+  .sig-field:last-child { border-right: none; }
+  .sig-label { font-weight: bold; white-space: nowrap; }
+  .sig-value { flex: 1; border-bottom: 1px solid #aaa; min-height: 16px; padding: 0 2px; font-size: 10px; }
+
+  /* ── REVIEW SECTION ── */
+  .review-box {
+    border: 1px solid #555;
+    margin-top: 0;
+  }
+  .review-header {
+    background: #d0d0d0;
+    font-weight: bold;
+    padding: 3px 5px;
+    border-bottom: 1px solid #555;
+  }
+
+  /* ── STATUS ROW ── */
+  .status-row { display: flex; align-items: center; gap: 10px; padding: 2px 5px; font-size: 10.5px; }
+  .status-opt { display: flex; align-items: center; gap: 4px; }
+
+  /* ── COMMENTS HIGHLIGHT ── */
+  .comments-box {
+    background: #ffffa0;
+    border: 1px solid #bbb;
+    padding: 4px 6px;
+    min-height: 36px;
+    font-size: 10.5px;
+  }
+
+  /* ── PMCM ENDORSEMENT ── */
+  .endorse-row { display: flex; align-items: center; gap: 15px; padding: 2px 5px; font-size: 10.5px; }
+
+  /* ── RESUBMIT BOX ── */
+  .resubmit-box {
+    border: 1px solid #555;
+    padding: 6px;
+    min-height: 40px;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+  }
+
+  /* ── FOOTER NOTE ── */
+  .footer-note { font-size: 9px; color: #555; margin-top: 2px; font-style: italic; }
+  .ref-footer { text-align: right; font-size: 9px; color: #333; margin-top: 4px; }
+
+  /* ── NOTICE BAR ── */
+  .notice-bar {
+    border: 1px solid #555;
+    padding: 3px 6px;
+    font-size: 9.5px;
+    font-style: italic;
+    color: #333;
+    text-align: center;
+    background: #f9f9f9;
+  }
+
+  /* ── UNDERLINE INPUT ── */
+  .ul-input {
+    border: none;
+    border-bottom: 1px solid #aaa;
+    outline: none;
+    width: 100%;
+    font-size: 10.5px;
+    background: transparent;
+    padding: 1px 2px;
+  }
+
+  @media print {
+    body { background: #fff; margin: 0; padding: 0; }
+    .page { margin: 0; box-shadow: none; width: 100%; padding: 8mm; }
+    .no-print { display: none !important; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PRINT BUTTON -->
+<div class="no-print text-center my-3">
+  <button onclick="window.print()" class="btn btn-danger px-4 fw-bold">🖨️ Print / Save as PDF</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PAGE 1 — WIR FORM -->
+<div class="page">
+
+  <!-- HEADER LOGOS -->
+  <div class="header-row">
+    <div class="logo-parsons">&#9654; PARSONS</div>
+    <div class="logo-dar">dar</div>
+    <div class="logo-mbl">
+      <div class="mbl-title">MBL</div>
+      <div class="mbl-sub">MODERN BUILDING LEADERS (MBL) Co. LLC</div>
+      <div class="mbl-sub">شركة قادة البناء الحديث المحدودة</div>
+    </div>
+  </div>
+
+  <!-- FORM TITLE -->
+  <div class="form-title">Work Inspection Request</div>
+
+  <!-- MAIN TABLE -->
+  <table class="wir-table">
+
+    <!-- ROW 1: Request Ref / Revision / Submission Date -->
+    <tr>
+      <td class="label-cell" style="width:16%">Request Ref.:</td>
+      <td class="value-cell" style="width:35%">L01-MBLC-CON-CIV-WIR-013073</td>
+      <td class="label-cell" style="width:12%">Revision:</td>
+      <td class="value-cell" style="width:10%">R00</td>
+      <td class="label-cell" style="width:16%">Submission Date:</td>
+      <td class="value-cell" style="width:11%">13/06/24</td>
+    </tr>
+
+    <!-- ROW 2: Project / Inspection Date / Time -->
+    <tr>
+      <td class="label-cell">Project:</td>
+      <td class="value-cell">L01-04</td>
+      <td class="label-cell">Inspection Date:</td>
+      <td class="value-cell">22/06/24</td>
+      <td class="label-cell">Time:</td>
+      <td class="value-cell">10:00</td>
+    </tr>
+
+    <!-- ROW 3: Client / Project Zone No -->
+    <tr>
+      <td class="label-cell">Client:</td>
+      <td class="value-cell">CPPA</td>
+      <td class="label-cell" colspan="2">Project/Zone No:</td>
+      <td class="value-cell" colspan="2">L01/ Cup Station</td>
+    </tr>
+
+    <!-- ROW 4: PMCM / Contractor -->
+    <tr>
+      <td class="label-cell">PMCM/Engineer:</td>
+      <td class="value-cell">Saudi Arabian Parsons Ltd</td>
+      <td class="label-cell" colspan="2">Contractor:</td>
+      <td class="value-cell" colspan="2">MBL</td>
+    </tr>
+
+    <!-- DISCIPLINE HEADER -->
+    <tr>
+      <td class="section-header" colspan="6">Discipline:</td>
+    </tr>
+
+    <!-- DISCIPLINE ROW 1 -->
+    <tr>
+      <td colspan="6" style="padding:3px 5px; border:1px solid #555;">
+        <table class="disc-table">
+          <tr>
+            <td><div class="cb-wrap"><span class="cb-box checked"></span> Survey</div></td>
+            <td><div class="cb-wrap"><span class="cb-box checked"></span> Civil</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Architectural</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Structural</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Landscape</div></td>
+          </tr>
+          <tr>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Electrical</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Low current</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Mechanical</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> HSE</div></td>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Testing/Commissioning</div></td>
+          </tr>
+          <tr>
+            <td><div class="cb-wrap"><span class="cb-box"></span> Facade</div></td>
+            <td colspan="2"><div class="cb-wrap"><span class="cb-box"></span> Others (........................)</div></td>
+            <td colspan="2">Sub-discipline (Steel Structure)</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- WORK DETAILS HEADER -->
+    <tr>
+      <td class="section-header" colspan="6"><strong>Work Details:</strong></td>
+    </tr>
+
+    <!-- DESCRIPTION LABEL -->
+    <tr>
+      <td class="section-header" colspan="6"><strong>Description:</strong></td>
+    </tr>
+
+    <!-- DESCRIPTION VALUE -->
+    <tr>
+      <td colspan="6" style="border:1px solid #555; padding:0;">
+        <div class="desc-box">
+          Request for Inspection of Formwork &amp; Survey (Levelling and Coordinates) for the Slab on Grade near
+          Sec Room &amp; MTR room at Cup Station up to Level 633.81 as Highlighted
+        </div>
+      </td>
+    </tr>
+
+    <!-- APPROVED METHOD STATEMENT -->
+    <tr>
+      <td class="label-cell" colspan="1"><strong>Approved Method Statement:</strong></td>
+      <td class="value-cell" colspan="3">L01-MBLC-CON-CIV-MES-000047</td>
+      <td class="label-cell">Section:</td>
+      <td class="value-cell">NN</td>
+    </tr>
+
+    <!-- APPROVED ITP -->
+    <tr>
+      <td class="label-cell" colspan="1"><strong>Approved Inspection and Test Plan:</strong></td>
+      <td class="value-cell" colspan="3">L01-MBLC-CON-CIV-ITP-000164-R01</td>
+      <td class="label-cell">Clause:</td>
+      <td class="value-cell">NN</td>
+    </tr>
+
+    <!-- CLEARANCE FORM -->
+    <tr>
+      <td class="label-cell" colspan="1"><strong>Clearance Form Enclosed:</strong></td>
+      <td colspan="5" style="border:1px solid #555; padding:3px 5px;">
+        <div class="cb-wrap" style="display:inline-flex; margin-right:15px;">
+          <span class="cb-box"></span> Yes / Disciplines (...................................................)
+        </div>
+        <div class="cb-wrap" style="display:inline-flex;">
+          <span class="cb-box checked"></span> No
+        </div>
+      </td>
+    </tr>
+
+    <!-- APPROVED DRAWING NO + ATTACHED -->
+    <tr>
+      <td class="label-cell" style="vertical-align:top; width:16%"><strong>Approved Drawing No.:</strong></td>
+      <td class="value-cell" colspan="3" style="vertical-align:top;">L01-MBLC-D04-STR-DWG-40LA100-AG-LAY1300_R00</td>
+      <td colspan="2" style="border:1px solid #555; padding:3px 6px; font-size:10px;">
+        <div class="attach-row">
+          <span>Attached Approved Drawings</span>
+          <span class="cb-box checked" style="float:right"></span>
+        </div>
+        <div class="attach-row">
+          <span>Attached Location Sketch</span>
+          <span class="cb-box checked" style="float:right"></span>
+        </div>
+        <div class="attach-row">
+          <span>Attached Check Sheet</span>
+          <span class="cb-box checked" style="float:right"></span>
+        </div>
+        <div class="attach-row">
+          <span>Attached Previous Revision <em>(if any)</em></span>
+          <span class="cb-box" style="float:right"></span>
+        </div>
+      </td>
+    </tr>
+
+    <!-- LOCATION / LEVEL -->
+    <tr>
+      <td class="label-cell"><strong>Location / Level / Room Name &amp; No. / Grid Line:</strong></td>
+      <td class="value-cell" colspan="5">Cup Station</td>
+    </tr>
+
+  </table>
+
+  <!-- NOTICE BAR -->
+  <div class="notice-bar">
+    *The above work has been completed according to Project requirements and specifications and is ready for inspection*
+  </div>
+
+  <!-- MBL CONSTRUCTION REP -->
+  <div class="sig-section" style="margin-top:2px;">
+    <div class="sig-header">MBL Construction Representative's</div>
+    <div style="display:flex; border-bottom:1px solid #555;">
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Name:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555; font-size:10.5px;">Ahmed Samir</div>
+      <div style="flex:0 0 14%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Signature:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555;"></div>
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Date:</div>
+      <div style="flex:0 0 14%; padding:3px 5px; font-size:10.5px;">13/06/24</div>
+    </div>
+  </div>
+
+  <!-- MBL QA/QC Manager -->
+  <div class="sig-section" style="margin-top:2px;">
+    <div class="sig-header">MBL QA/QC's Manager:</div>
+    <div style="display:flex;">
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Name:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555; font-size:10.5px;">Yazan Shoqeir</div>
+      <div style="flex:0 0 14%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Signature:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555;"></div>
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Date:</div>
+      <div style="flex:0 0 14%; padding:3px 5px; font-size:10.5px;">13/06/24</div>
+    </div>
+  </div>
+
+  <!-- SUPERVISION CONSULTANT REVIEW -->
+  <div class="review-box" style="margin-top:4px;">
+    <div class="review-header">Supervision Consultant's Review:</div>
+
+    <!-- Checks / Site Test Results -->
+    <div style="border-bottom:1px solid #555; padding:3px 5px;">
+      <strong style="font-size:10.5px;">Checks:</strong>
+    </div>
+    <div style="display:flex; align-items:center; border-bottom:1px solid #555; padding:3px 5px; font-size:10.5px; gap:10px;">
+      <span style="font-weight:bold;">Site Test Results (if any):</span>
+      <div class="cb-wrap"><span class="cb-box"></span> Passed</div>
+      <div class="cb-wrap"><span class="cb-box"></span> Failed</div>
+      <div class="cb-wrap"><span class="cb-box"></span> Not Applicable</div>
+    </div>
+
+    <!-- Status of Inspection -->
+    <div style="display:flex; align-items:center; border-bottom:1px solid #555; padding:3px 5px; font-size:10.5px; gap:10px;">
+      <span style="font-weight:bold; text-decoration:underline;">Status of Inspection:</span>
+      <div class="cb-wrap"><span class="cb-box"></span> <strong>Status A</strong> (Approved)</div>
+      <div class="cb-wrap"><span class="cb-box"></span> <strong>Status B</strong> (Approved with Comments)</div>
+      <div class="cb-wrap"><span class="cb-box checked"></span> <strong>Status C</strong> (Objection)</div>
+    </div>
+
+    <!-- Comments -->
+    <div style="padding:3px 5px; border-bottom:1px solid #555;">
+      <span style="font-weight:bold; text-decoration:underline; font-size:10.5px;">Comments:</span>
+      <div class="comments-box" style="margin-top:3px;">
+        Sur: * Inspection done as per attached survey data &amp; found not matching with approved grading master plan dwg. * Work is under contractor responsibilities.
+      </div>
+    </div>
+
+    <!-- Reviewer Name / Sig / Date -->
+    <div style="display:flex;">
+      <div style="flex:0 0 16%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Reviewer Name:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555; font-size:10.5px;">Loui Krishan</div>
+      <div style="flex:0 0 14%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Signature:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555;"></div>
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Date:</div>
+      <div style="flex:0 0 14%; padding:3px 5px; font-size:10.5px;">20/6/2024</div>
+    </div>
+  </div>
+
+  <!-- PMCM REVIEW -->
+  <div class="review-box" style="margin-top:4px;">
+    <div class="review-header">PMCM's Review:</div>
+
+    <!-- Endorsement -->
+    <div style="display:flex; align-items:center; border-bottom:1px solid #555; padding:3px 5px; font-size:10.5px; gap:15px;">
+      <span style="font-weight:bold; text-decoration:underline;">Endorsement:</span>
+      <div class="cb-wrap"><span class="cb-box checked"></span> <strong>Yes</strong></div>
+      <div class="cb-wrap"><span class="cb-box"></span> <strong>No</strong></div>
+    </div>
+
+    <!-- Comments -->
+    <div style="padding:3px 5px; border-bottom:1px solid #555;">
+      <span style="font-weight:bold; text-decoration:underline; font-size:10.5px;">Comments:</span>
+      <div class="resubmit-box" style="margin-top:3px; font-size:18px; letter-spacing:3px;">
+        RESUBMIT
+      </div>
+    </div>
+
+    <!-- To be Re-submit checkbox -->
+    <div style="display:flex; justify-content:flex-end; padding:3px 8px; border-bottom:1px solid #555; font-size:10.5px; gap:6px; align-items:center;">
+      <span class="cb-box checked"></span>
+      <span style="font-weight:bold;">To be Re-submit</span>
+    </div>
+
+    <!-- Reviewer Name / Sig / Date -->
+    <div style="display:flex;">
+      <div style="flex:0 0 16%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Reviewer Name:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555; font-size:10.5px;">P.D. Gam</div>
+      <div style="flex:0 0 14%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Signature:</div>
+      <div style="flex:1; padding:3px 5px; border-right:1px solid #555;"></div>
+      <div style="flex:0 0 8%; padding:3px 5px; border-right:1px solid #555; font-weight:bold; font-size:10.5px;">Date:</div>
+      <div style="flex:0 0 14%; padding:3px 5px; font-size:10.5px;">22/6/24</div>
+    </div>
+  </div>
+
+  <!-- FOOTER NOTE -->
+  <div class="footer-note">Note: This site inspection does not relieve the contractor from any of his contractual obligations.</div>
+  <div class="ref-footer">Ref No: L01-MBL-QHSE-WIR-001-R01</div>
+
+</div><!-- end page 1 -->
+
+
+<!-- ═══════════════════════════════════════════════════ PAGE 2 — CHECKLIST -->
+<div class="page" style="margin-top:10px;">
+
+  <!-- HEADER -->
+  <div style="display:flex; justify-content:space-between; align-items:center; border:1px solid #555; margin-bottom:0;">
+    <div style="padding:6px 10px; border-right:1px solid #555; flex:0 0 30%;">
+      <div style="font-size:9px; font-weight:bold; color:#555;">Consultant:</div>
+      <div style="font-size:18px; font-weight:900; color:#e2001a;">&#9654; PARSONS</div>
+    </div>
+    <div style="padding:6px 10px; border-right:1px solid #555; flex:0 0 30%; text-align:center;">
+      <div style="font-size:9px; font-weight:bold; color:#555;">Client:</div>
+    </div>
+    <div style="padding:6px 10px; flex:0 0 40%; text-align:right;">
+      <div style="font-size:9px; font-weight:bold; color:#555;">Contractor:</div>
+      <div style="font-size:20px; font-weight:900; color:#c8a000;">MBL</div>
+      <div style="font-size:8px; color:#555;">MODERN BUILDING LEADERS (MBL) Co. LLC</div>
+      <div style="font-size:8px; color:#555;">شركة قادة البناء الحديث المحدودة</div>
+    </div>
+  </div>
+
+  <!-- PROJECT INFO ROW -->
+  <table class="wir-table" style="margin-top:0;">
+    <tr>
+      <td style="width:50%; border:1px solid #555; padding:4px 6px;">
+        <div style="font-size:9px; font-weight:bold;">Project Name:</div>
+        <div style="font-size:10.5px;">L01, Riyadh, Kingdom of Saudi Arabia</div>
+      </td>
+      <td style="width:30%; border:1px solid #555; padding:4px 6px;">
+        <div style="font-size:9px; font-weight:bold;">Description:</div>
+        <div style="font-size:10.5px; font-weight:bold;">FOR CONCRETE WORK</div>
+      </td>
+      <td style="width:20%; border:1px solid #555; padding:4px 6px;">
+        <div style="font-size:9px; font-weight:bold;">Document Reference No:</div>
+        <div style="font-size:11px; font-weight:bold;">13073</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- CHECKLIST TITLE -->
+  <div style="text-align:center; font-size:18px; font-weight:bold; padding:5px 0; border:1px solid #555; border-top:none;">
+    CHECKLIST
+    <div style="float:right; font-size:10px; font-weight:normal; padding-right:10px; margin-top:4px;">
+      <strong>Ref No:</strong><br>
+      <strong>Date:</strong> 30/ 05 / 2024
+    </div>
+  </div>
+
+  <!-- LOCATION ROW -->
+  <table class="wir-table">
+    <tr>
+      <td class="label-cell" style="width:40%;">Location Description</td>
+      <td class="value-cell" style="text-align:center; font-weight:bold;">L-01</td>
+    </tr>
+  </table>
+
+  <!-- MAIN CHECKLIST TABLE -->
+  <table class="wir-table" style="margin-top:0;">
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:45%; background:#d0d0d0; text-align:left; font-size:11px;">Examination Items</th>
+        <th colspan="2" style="background:#d0d0d0; text-align:center;">MBL QA/QC</th>
+        <th colspan="2" style="background:#d0d0d0; text-align:center;">DAR</th>
+        <th rowspan="2" style="background:#d0d0d0; text-align:center; width:18%;">Remark</th>
+      </tr>
+      <tr>
+        <th style="background:#d0d0d0; text-align:center; font-size:9.5px;">Satisfied</th>
+        <th style="background:#d0d0d0; text-align:center; font-size:9.5px;">Unsatisfied</th>
+        <th style="background:#d0d0d0; text-align:center; font-size:9.5px;">Satisfied</th>
+        <th style="background:#d0d0d0; text-align:center; font-size:9.5px;">Unsatisfied</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Row: Anti-termite -->
+      <tr>
+        <td>Anti-termite treatment</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Formwork -->
+      <tr>
+        <td>Formwork dimensions, tightness, rigidity, cleanliness</td>
+        <td style="text-align:center; font-size:14px;">✓</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center; font-size:14px;">✓</td>
+        <td></td>
+      </tr>
+      <!-- Row: Scaffolding -->
+      <tr>
+        <td>Scaffolding</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Reinforcement -->
+      <tr>
+        <td>Reinforcement Bar size, numbers, spacing, laps, cleanliness</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Water stoppers -->
+      <tr>
+        <td>Water stoppers installed at construction joints</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Existing concrete -->
+      <tr>
+        <td>Existing concrete cleaning</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Surveying -->
+      <tr>
+        <td>Surveying, level and coordination</td>
+        <td style="text-align:center; font-size:14px;">✓</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center; font-size:14px;">✓</td>
+        <td></td>
+      </tr>
+      <!-- Row: Pouring -->
+      <tr>
+        <td>Method of pouring &amp; vibration</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Curing -->
+      <tr>
+        <td>Arrangement for curing</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: Compressive -->
+      <tr>
+        <td>Compressive strength results</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Row: DE shuttering -->
+      <tr>
+        <td>Method and sequence of DE shuttering</td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td style="text-align:center;"></td>
+        <td></td>
+      </tr>
+      <!-- Blank rows -->
+      <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <!-- COMMENTS -->
+  <table class="wir-table" style="margin-top:0;">
+    <tr>
+      <td style="width:20%; vertical-align:top; font-weight:bold; border:1px solid #555; padding:4px 6px;">Comments :</td>
+      <td style="border:1px solid #555; padding:4px 6px; min-height:60px; height:60px;"></td>
+    </tr>
+  </table>
+
+  <!-- SIGNATURE ROW -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <th style="background:#d0d0d0; width:33.3%; text-align:center;">Site Engineer</th>
+      <th style="background:#d0d0d0; width:33.3%; text-align:center;">QC Engineer</th>
+      <th style="background:#d0d0d0; width:33.3%; text-align:center;">Consultant Engineer</th>
+    </tr>
+    <tr>
+      <td style="border:1px solid #555; padding:3px 6px;">
+        <div><strong>Name:</strong> ADNAN</div>
+        <div style="margin-top:6px;"><strong>Signature:</strong></div>
+        <div style="min-height:20px; border-bottom:1px solid #aaa; margin-top:4px;"></div>
+        <div style="margin-top:4px;"><strong>Date:</strong></div>
+      </td>
+      <td style="border:1px solid #555; padding:3px 6px;">
+        <div><strong>Name:</strong></div>
+        <div style="margin-top:6px;"><strong>Signature:</strong></div>
+        <div style="min-height:20px; border-bottom:1px solid #aaa; margin-top:4px;"></div>
+        <div style="margin-top:4px;"><strong>Date:</strong></div>
+      </td>
+      <td style="border:1px solid #555; padding:3px 6px;">
+        <div><strong>Name:</strong></div>
+        <div style="margin-top:6px;"><strong>Signature:</strong></div>
+        <div style="min-height:20px; border-bottom:1px solid #aaa; margin-top:4px;"></div>
+        <div style="margin-top:4px;"><strong>Date:</strong></div>
+      </td>
+    </tr>
+  </table>
+
+</div><!-- end page 2 -->
+
+
+<!-- ═══════════════════════════════════════════════════ PAGE 3 — TRANSMITTAL -->
+<div class="page" style="margin-top:10px;">
+
+  <!-- HEADER -->
+  <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:4px;">
+    <div>
+      <div style="font-size:14px; font-weight:900; color:#8B0000; letter-spacing:1px;">SAPL</div>
+      <div style="font-size:8px; color:#333; font-weight:bold;">SAUDI ARABIAN PARSONS LTD</div>
+      <div style="font-size:8px; color:#333;">شركة بارسونز العربية السعودية المحدودة</div>
+    </div>
+    <div style="flex:1; text-align:center; font-size:20px; font-weight:bold; letter-spacing:2px; padding-top:4px;">
+      TRANSMITTAL FORM
+    </div>
+  </div>
+
+  <!-- TRANSMITTAL TABLE -->
+  <table class="wir-table">
+    <tr>
+      <td class="label-cell" style="width:22%">Transmittal Ref.</td>
+      <td class="value-cell" style="width:45%">L01-SAPL-MBLC-D04-TRN-021976</td>
+      <td class="label-cell" style="width:10%">Date</td>
+      <td class="value-cell">27-Mar-2024</td>
+    </tr>
+    <tr>
+      <td class="label-cell">Program</td>
+      <td colspan="3" class="value-cell">Project Management Consultancy Services for Crown Prince Private Affairs (CPPA)</td>
+    </tr>
+  </table>
+
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="label-cell" style="width:22%">Project</td>
+      <td class="value-cell" style="width:45%">L01</td>
+      <td class="label-cell" style="width:10%">Scope</td>
+      <td class="value-cell">L01-01-04 - Mater Plan</td>
+    </tr>
+    <tr>
+      <td class="label-cell">From PMC</td>
+      <td colspan="3" class="value-cell">Saudi Arabian Parsons Ltd. - SAPL</td>
+    </tr>
+    <tr>
+      <td class="label-cell">To Contractor</td>
+      <td colspan="3" class="value-cell"><strong>Modern Building Leaders Co. Ltd.</strong></td>
+    </tr>
+    <tr>
+      <td class="label-cell">Attention To</td>
+      <td colspan="3" class="value-cell">Khalil Atleh</td>
+    </tr>
+    <tr>
+      <td class="label-cell">Copy To</td>
+      <td colspan="3" class="value-cell">DAR, F+G and CSI Document Management Department</td>
+    </tr>
+  </table>
+
+  <!-- ENCLOSURES -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header" colspan="5">Enclosures</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box checked"></span> Drawings</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Letters</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Reports</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Subcon Prequalification</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Material Submittal</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Schedule / Plan</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Samples</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Specifications</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> Other</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;"></td>
+    </tr>
+  </table>
+
+  <!-- SUBMITTED -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header" colspan="4">Submitted</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> For Approval</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> As Requested</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box"></span> For Review &amp; Comments</div>
+      </td>
+      <td style="border:1px solid #555; padding:4px;">
+        <div class="cb-wrap"><span class="cb-box checked"></span> Other &nbsp; <em>For Information &amp; Action</em></div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- ITEM DETAILS TABLE -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header" colspan="5">Item Details</td>
+    </tr>
+    <tr>
+      <th style="background:#d0d0d0; width:6%; text-align:center;">SN</th>
+      <th style="background:#d0d0d0; width:48%;">Description</th>
+      <th style="background:#d0d0d0; width:10%; text-align:center;">Media</th>
+      <th style="background:#d0d0d0; width:28%;">Reference No.</th>
+      <th style="background:#d0d0d0; width:5%; text-align:center;">Rev</th>
+      <th style="background:#d0d0d0; width:8%; text-align:center;">Status</th>
+    </tr>
+    <tr>
+      <td style="text-align:center; border:1px solid #555; padding:3px;">1</td>
+      <td style="border:1px solid #555; padding:3px;">Master Area Typical Slab on Grade Details</td>
+      <td style="text-align:center; border:1px solid #555; padding:3px;">Email</td>
+      <td style="border:1px solid #555; padding:3px; font-size:9.5px;">L01-MBLC-D04-STR-DWG-40LA100-AG-LAY1300</td>
+      <td style="text-align:center; border:1px solid #555; padding:3px;">00</td>
+      <td style="text-align:center; border:1px solid #555; padding:3px; font-style:italic; font-weight:bold;">2</td>
+    </tr>
+    <tr><td style="border:1px solid #555; padding:3px; height:22px; text-align:center; font-style:italic; font-size:9px;" colspan="6">******************* Nothing Follows *******************</td></tr>
+    <tr><td colspan="6" style="border:1px solid #555; height:20px;"></td></tr>
+    <tr><td colspan="6" style="border:1px solid #555; height:20px;"></td></tr>
+    <tr><td colspan="6" style="border:1px solid #555; height:20px;"></td></tr>
+    <tr><td colspan="6" style="border:1px solid #555; height:20px;"></td></tr>
+  </table>
+
+  <!-- REMARKS -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header">Remarks:</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #555; padding:5px; font-size:10.5px; line-height:1.7;">
+        Please find the attached for the mentioned above.<br>
+        <strong>OCS for</strong> MBL TRN Ref.<strong># L01-MBLC-SAPL-D04-TRN-029626.</strong><br>
+        <span style="font-size:9.5px; color:#555;">Note: OCS Excel file and Stamped drawings is available on the L01-Document Storage and can be accessed vide the link provided in the email.</span><br><br>
+        Review Status Code = &nbsp;&nbsp;&nbsp; <em>1 - Engineer's No Objection</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <em>2 - Engineer's No Objection with Comments</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <em>3 - Engineer's Objection</em>
+      </td>
+    </tr>
+  </table>
+
+  <!-- TRANSMITTED BY -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header" colspan="4">Transmitted by</td>
+    </tr>
+    <tr>
+      <td class="label-cell" style="width:12%">Name</td>
+      <td class="value-cell" style="width:35%; font-weight:bold;">Neil Hawke</td>
+      <td class="label-cell" style="width:14%">Signature</td>
+      <td class="value-cell" style="min-height:30px;"></td>
+      <td class="label-cell" style="width:8%">Date</td>
+      <td class="value-cell" style="width:18%">27-Mar-2024</td>
+    </tr>
+  </table>
+
+  <!-- RECEIVED BY -->
+  <table class="wir-table" style="margin-top:4px;">
+    <tr>
+      <td class="section-header" colspan="6">Received by</td>
+    </tr>
+    <tr>
+      <td class="label-cell" style="width:12%">Name</td>
+      <td class="value-cell" style="width:35%;"></td>
+      <td class="label-cell" style="width:14%">Signature</td>
+      <td class="value-cell" style="min-height:30px;"></td>
+      <td class="label-cell" style="width:8%">Date</td>
+      <td class="value-cell" style="width:18%"></td>
+    </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <div style="margin-top:10px; font-size:9px; color:#555;">
+    Document No.: L01-SF-TRAN-001 &nbsp;&nbsp; Revision No.: 0 &nbsp;&nbsp; Approval Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <span style="float:right;">Page 1 of 1</span>
+  </div>
+
+</div><!-- end page 3 -->
+
+
+<!-- ═══════════════════════════════════════════════════ PAGE 4 — COORDINATES TABLE -->
+<div class="page" style="margin-top:10px;">
+
+  <div style="text-align:center; margin: 30px auto 20px;">
+    <table style="margin:0 auto; border-collapse:collapse; width:70%;">
+      <thead>
+        <tr>
+          <th colspan="4" style="background:#1a1a2e; color:#fff; font-size:14px; font-weight:bold; padding:10px; border:2px solid #333; text-align:center; letter-spacing:1px;">
+            S.O.G CUP STATION COORDINATES
+          </th>
+        </tr>
+        <tr>
+          <th style="border:2px solid #333; padding:7px 12px; background:#e8e8e8; font-size:11px;">NO</th>
+          <th style="border:2px solid #333; padding:7px 12px; background:#e8e8e8; font-size:11px;">EASTING</th>
+          <th style="border:2px solid #333; padding:7px 12px; background:#e8e8e8; font-size:11px;">NORTHING</th>
+          <th style="border:2px solid #333; padding:7px 12px; background:#e8e8e8; font-size:11px;">ELEVATION</th>
+        </tr>
+      </thead>
+      <tbody id="coordTableBody">
+        <!-- JS fills this -->
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:right; margin-top:40px; margin-right:60px; font-size:11px;">
+    <div style="border:1px solid #bbb; display:inline-block; padding:8px 16px; font-style:italic; color:#333;">
+      DAR<br>
+      <em>Signature</em><br>
+      19-6-2024
+    </div>
+  </div>
+
+</div><!-- end page 4 -->
+
+<script>
+  // Coordinate Data
+  const coords = [
+    [1, "666513.39", "2728831.97", "633.77"],
+    [2, "666498.18", "2728855.83", "633.63"],
+    [3, "666496.28", "2728854.64", "663.47"],
+    [4, "666494.96", "2728850.46", "633.45"],
+    [5, "666503.61", "2728837.18", "633.71"],
+    [6, "666505.29", "2728838.27", "633.71"],
+    [7, "666508.67", "2728833.08", "633.75"],
+    [8, "666507.00", "2728831.98", "633.75"],
+    [9, "666510.04", "2728829.79", "633.77"],
+    [10,"666513.40", "2728824.63", "633.81"],
+    [11,"666512.27", "2728823.90", "633.81"],
+    [12,"666511.68", "2728831.28", "633.77"],
+    [13,"666508.79", "2728829.47", "633.77"],
+  ];
+  const tbody = document.getElementById("coordTableBody");
+  coords.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="border:2px solid #333; padding:6px 12px; text-align:center; font-size:11px;">${r[0]}</td>
+      <td style="border:2px solid #333; padding:6px 12px; text-align:center; font-size:11px;">${r[1]}</td>
+      <td style="border:2px solid #333; padding:6px 12px; text-align:center; font-size:11px;">${r[2]}</td>
+      <td style="border:2px solid #333; padding:6px 12px; text-align:center; font-size:11px;">${r[3]}</td>`;
+    tbody.appendChild(tr);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Inspection Request Template</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* General Setup for Print and Screen */
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+        }
+        
+        /* A4 Page Styling */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 10mm auto;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Form Table Strict Borders */
+        .form-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .form-table th, .form-table td {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            vertical-align: top;
+        }
+        .form-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .no-border { border: none !important; }
+        .no-border-top { border-top: none !important; }
+        .no-border-bottom { border-bottom: none !important; }
+        .no-border-left { border-left: none !important; }
+        .no-border-right { border-right: none !important; }
+        
+        .text-bold { font-weight: bold; }
+        .min-h-50 { min-height: 50px; }
+        .min-h-100 { min-height: 100px; }
+        
+        /* Checkbox styling via unicode for easy printing */
+        .check-box {
+            font-size: 16px;
+            line-height: 1;
+            margin-right: 5px;
+        }
+
+        .header-logos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .header-logos div {
+            flex: 1;
+        }
+
+        /* Print Specific Styles */
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .a4-page {
+                margin: 0;
+                box-shadow: none;
+                width: 100%;
+                min-height: auto;
+                padding: 10mm;
+                page-break-after: always;
+            }
+            .a4-page:last-child {
+                page-break-after: auto;
+            }
+            /* Force print background colors and borders */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: Work Inspection Request -->
+    <div class="a4-page">
+        <div class="header-logos">
+            <div>PARSONS</div>
+            <div>DAR</div>
+            <div>
+                MBL<br>
+                <small>MODERN BUILDING LEADERS (MBL) CO. LLC</small><br>
+                <small>شركة قادة البناء الحديث المحدودة</small>
+            </div>
+        </div>
+
+        <h4 class="text-center text-bold mb-3 text-uppercase">Work Inspection Request</h4>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2"><span class="text-bold">Request Ref.:</span> L01-MBLC-CON-CIV-WIR-013073</td>
+                <td><span class="text-bold">Revision:</span> R00</td>
+                <td><span class="text-bold">Submission Date:</span> 13/06/24</td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">Project:</span> L01-04</td>
+                <td><span class="text-bold">Inspection Date:</span> 22/06/24</td>
+                <td><span class="text-bold">Time:</span> 10:00</td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">Client:</span> CPPA</td>
+                <td colspan="2"><span class="text-bold">Project/Zone No:</span> L01 / Cup Station</td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">PMCM/Engineer:</span> Saudi Arabian Parsons Ltd</td>
+                <td colspan="2"><span class="text-bold">Contractor:</span> MBL</td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <span class="text-bold">Discipline:</span><br>
+                    <div class="row mt-2">
+                        <div class="col-3"><span class="check-box">&#9745;</span> Survey</div>
+                        <div class="col-3"><span class="check-box">&#9745;</span> Civil</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Architectural</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Structural</div>
+                        
+                        <div class="col-3"><span class="check-box">&#9744;</span> Landscape</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Electrical</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Low current</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Mechanical</div>
+
+                        <div class="col-3"><span class="check-box">&#9744;</span> HSE</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Testing/Commissioning</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Facade</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Others (.............)</div>
+                    </div>
+                    <div class="mt-2">
+                        <span class="text-bold">Sub-discipline:</span> (Steel Structure)
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="min-h-100">
+                    <span class="text-bold">Work Details:</span><br>
+                    <span class="text-bold">Description:</span><br>
+                    Request for Inspection of Formwork & Survey (Levelling and Coordinates) for the Slab on Grade near Sec Room & MTR room at Cup Station up to Level 633.81 as Highlighted
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">Approved Method Statement:</span> L01-MBLC-CON-CIV-MES-000047</td>
+                <td colspan="2"><span class="text-bold">Section:</span> NN</td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">Approved Inspection and Test Plan:</span> L01-MBLC-CON-CIV-ITP-000164-R01</td>
+                <td colspan="2"><span class="text-bold">Clause:</span> NN</td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <div class="row">
+                        <div class="col-6">
+                            <span class="text-bold">Clearance Form Enclosed:</span><br>
+                            <span class="check-box">&#9744;</span> Yes/ Disciplines (...................)<br>
+                            <span class="check-box">&#9745;</span> No
+                        </div>
+                        <div class="col-6">
+                            <span class="text-bold">Attached Approved Drawings:</span> <span class="check-box">&#9745;</span><br>
+                            No.: L01-MBLC-D04-STR-DWG-40LA100-AG-LAY1300_R00<br>
+                            <span class="text-bold">Attached Location Sketch:</span> <span class="check-box">&#9745;</span><br>
+                            Location/Level/Room Name & No. / Grid Line: Cup Station<br>
+                            <span class="text-bold">Attached Check Sheet:</span> <span class="check-box">&#9745;</span><br>
+                            <span class="text-bold">Attached Previous Revision (if any):</span> <span class="check-box">&#9744;</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    "The above work has been completed according to Project requirements and specifications and is ready for inspection"
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <span class="text-bold">MBL Construction Representative's</span><br>
+                            Name: Ahmed Samir<br>
+                            Signature: _________<br>
+                            Date: 13/06/24
+                        </div>
+                        <div class="col-6">
+                            <span class="text-bold">MBL QA/QC's Manager:</span><br>
+                            Name: Yazan Shoqeir<br>
+                            Signature: _________<br>
+                            Date: 13/06/24
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="min-h-100">
+                    <span class="text-bold">Supervision Consultant's Review:</span><br>
+                    <span class="text-bold">Checks:</span><br>
+                    <span class="text-bold">Site Test Results (if any):</span> 
+                    <span class="check-box">&#9744;</span> Passed 
+                    <span class="check-box">&#9744;</span> Failed 
+                    <span class="check-box">&#9744;</span> Not Applicable<br><br>
+                    
+                    <span class="text-bold">Status of Inspection:</span><br>
+                    <span class="check-box">&#9744;</span> Status A (Approved)<br>
+                    <span class="check-box">&#9744;</span> Status B (Approved with Comments)<br>
+                    <span class="check-box">&#9745;</span> Status C (Objection)<br><br>
+                    
+                    <span class="text-bold">Comments:</span> Survey Inspection done as per attached Survey data & found not matching to approved grading master plan dwg. Work is under contractor responsibility.<br><br>
+                    
+                    <div class="row mt-4">
+                        <div class="col-4">Reviewer Name: Kishta</div>
+                        <div class="col-4">Signature: _________</div>
+                        <div class="col-4">Date: 19-6-2024</div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="min-h-100">
+                    <span class="text-bold">PMCM's Review:</span><br>
+                    <span class="text-bold">Comments:</span><br><br>
+                    
+                    <span class="text-bold">Endorsement:</span> 
+                    <span class="check-box">&#9744;</span> Yes 
+                    <span class="check-box">&#9744;</span> No 
+                    <span class="text-bold ms-3">RESUBMIT</span><br><br>
+                    
+                    <div class="row mt-4">
+                        <div class="col-4">Reviewer Name: ____________</div>
+                        <div class="col-4">Signature: ____________</div>
+                        <div class="col-4">Date: 22/6/24</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="text-center small">Note: This site inspection does not relieve the contractor from any of his contractual obligations.</div>
+        <div class="text-start small">Ref No: L01-MBL-QHSE-WIR-001-R01</div>
+    </div>
+
+    <!-- PAGE 2: Checklist -->
+    <div class="a4-page">
+        <div class="row text-center text-bold mb-3">
+            <div class="col-4 border border-dark p-2">
+                Consultant:<br>PARSONS
+            </div>
+            <div class="col-4 border border-dark border-start-0 border-end-0 p-2 d-flex align-items-center justify-content-center">
+                CHECKLIST<br>FOR CONCRETE WORK
+            </div>
+            <div class="col-4 border border-dark p-2">
+                Contractor:<br>MBL<br>
+                <small>MODERN BUILDING LEADERS (MBL) Co. LLC</small>
+            </div>
+        </div>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2"><span class="text-bold">Project Name:</span> L01, Riyadh, Kingdom of Saudi Arabia</td>
+                <td colspan="2"><span class="text-bold">Document Reference No:</span> 13073</td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="text-bold">Description:</span> </td>
+                <td colspan="2"><span class="text-bold">Ref No:</span> <br><span class="text-bold">Date:</span> 30/05/2024</td>
+            </tr>
+            <tr>
+                <td colspan="4"><span class="text-bold">Location Description:</span> L-01</td>
+            </tr>
+        </table>
+
+        <table class="form-table text-center align-middle">
+            <tr>
+                <th rowspan="2" class="w-25 text-start">Examination Items</th>
+                <th colspan="2">MBL QA/QC</th>
+                <th colspan="2">DAR</th>
+                <th rowspan="2" class="w-25">Remark</th>
+            </tr>
+            <tr>
+                <th>Satisfied</th>
+                <th>Unsatisfied</th>
+                <th>Satisfied</th>
+                <th>Unsatisfied</th>
+            </tr>
+            <tr>
+                <td class="text-start">Anti-termite treatment</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Formwork dimensions, tightness, rigidity, cleanliness Scaffolding</td>
+                <td><span class="check-box">&#9745;</span></td><td></td><td><span class="check-box">&#9745;</span></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Reinforcement Bar size, numbers, spacing, laps, cleanliness</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Water stoppers installed at construction joints</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Existing concrete cleaning</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Surveying, level and coordination</td>
+                <td><span class="check-box">&#9745;</span></td><td></td><td><span class="check-box">&#9745;</span></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Method of pouring & vibration</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Arrangement for curing</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td class="text-start">Compressive strength results Method and sequence of DE shuttering</td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+        </table>
+
+        <div class="border border-dark p-2 min-h-100 mb-3">
+            <span class="text-bold">Comments:</span>
+        </div>
+
+        <div class="row text-center mt-5">
+            <div class="col-4">
+                <span class="text-bold">Site Engineer</span><br><br>
+                Name: ADNAN<br>
+                Signature: _________<br>
+                Date: _________
+            </div>
+            <div class="col-4">
+                <span class="text-bold">QC Engineer</span><br><br>
+                Name: _________<br>
+                Signature: _________<br>
+                Date: _________
+            </div>
+            <div class="col-4">
+                <span class="text-bold">Consultant Engineer</span><br><br>
+                Name: _________<br>
+                Signature: _________<br>
+                Date: _________
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: Transmittal Form -->
+    <div class="a4-page">
+        <div class="row align-items-center mb-4">
+            <div class="col-6">
+                <h3 class="text-bold m-0">SAPL</h3>
+            </div>
+            <div class="col-6 text-end">
+                <span class="text-bold">TRANSMITTAL FORM</span><br>
+                SAUDI ARABIAN PARSONS LTD<br>
+                شركة بارسونز العربية السعودية المحدودة
+            </div>
+        </div>
+
+        <table class="form-table">
+            <tr>
+                <td class="text-bold w-25">Transmittal Ref.</td>
+                <td>L01-SAPL-MBLC-D04-TRN-021976</td>
+                <td class="text-bold">Date</td>
+                <td>27-Mar-2024</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Program</td>
+                <td colspan="3">Project Management Consultancy Services for Crown Prince Private Affairs (CPPA)</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Project</td>
+                <td colspan="3">L01</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Scope</td>
+                <td colspan="3">L01-01-04-Master Plan</td>
+            </tr>
+            <tr>
+                <td class="text-bold">From PMC</td>
+                <td colspan="3">Saudi Arabian Parsons Ltd. - SAPL</td>
+            </tr>
+            <tr>
+                <td class="text-bold">To Contractor</td>
+                <td colspan="3">Modern Building Leaders Co. Ltd.</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Attention To</td>
+                <td colspan="3">Khalil Atieh</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Copy To</td>
+                <td colspan="3">DAR, F+G and CSI Document Management Department</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Enclosures</td>
+                <td colspan="3">
+                    <div class="row">
+                        <div class="col-4"><span class="check-box">&#9745;</span> Drawings</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Letters</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Reports</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Subcon Prequalification</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Material Submittal</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Schedule/Plan</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Samples</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Specifications</div>
+                        <div class="col-4"><span class="check-box">&#9744;</span> Other</div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-bold">Submitted</td>
+                <td colspan="3">
+                    <div class="row">
+                        <div class="col-3"><span class="check-box">&#9744;</span> For Approval</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> As Requested</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> For Review & Comments</div>
+                        <div class="col-3"><span class="check-box">&#9744;</span> Other For Information & Action</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <span class="text-bold">Item Details</span>
+        <table class="form-table mt-2">
+            <tr>
+                <th>SN</th>
+                <th>Description</th>
+                <th>Media</th>
+                <th>Reference No.</th>
+                <th>Rev</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Master Area Typical Slab on Grade Details</td>
+                <td>Email</td>
+                <td>L01-MBLC-D04-STR-DWG-40LA100-AG-LAY1300</td>
+                <td>00</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="text-center text-muted fst-italic py-3">Nothing Follows</td>
+            </tr>
+        </table>
+
+        <div class="border border-dark p-2 min-h-100 mb-3">
+            <span class="text-bold">Remarks:</span><br>
+            Please find the attached for the mentioned above.<br>
+            OCS for MBL TRN Ref.# L01-MBLC-SAPL-D04-TRN-029626.<br>
+            Note: OCS Excel file and Stamped drawings is available on the L01-Document Storage and can be accessed via the link provided in the email.
+        </div>
+        
+        <div class="small mb-3">
+            <span class="text-bold">Review Status Code:</span> 1-Engineer's No Objection | 2-Engineer's No Objection with Comments | 3-Engineer's Objection
+        </div>
+
+        <div class="row text-center mt-4">
+            <div class="col-6">
+                <span class="text-bold">Transmitted by</span><br><br>
+                Name: Neil Hawke<br>
+                Signature: _________<br>
+                Date: 27-Mar-2024
+            </div>
+            <div class="col-6">
+                <span class="text-bold">Received by</span><br><br>
+                Name: _________<br>
+                Signature: _________<br>
+                Date: _________
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-5 small">
+            <div>Document No.: L01-SF-TRAN-001<br>Revision No.: 0</div>
+            <div>Approval Date: _________</div>
+            <div>Page 1 of 1</div>
+        </div>
+    </div>
+
+    <!-- PAGE 4: Coordinates -->
+    <div class="a4-page">
+        <div class="text-end mb-4">
+            <span class="text-bold" style="font-size: 24px; color: blue;">DAR</span><br>
+            <span style="font-size: 18px; color: blue;">19-6-2024</span>
+        </div>
+        
+        <h4 class="text-center text-bold mb-4 text-uppercase">S.O.G CUP STATION COORDINATES</h4>
+
+        <table class="form-table text-center table-striped">
+            <tr>
+                <th>NO</th>
+                <th>EASTING</th>
+                <th>NORTHING</th>
+                <th>ELEVATION</th>
+            </tr>
+            <tr><td>1</td><td>666513.39</td><td>2728831.97</td><td>633.77</td></tr>
+            <tr><td>2</td><td>666498.18</td><td>2728855.83</td><td>633.63</td></tr>
+            <tr><td>3</td><td>666496.28</td><td>2728854.64</td><td>663.47</td></tr>
+            <tr><td>4</td><td>666494.96</td><td>2728850.46</td><td>633.45</td></tr>
+            <tr><td>5</td><td>666503.61</td><td>2728837.18</td><td>633.71</td></tr>
+            <tr><td>6</td><td>666505.29</td><td>2728838.27</td><td>633.71</td></tr>
+            <tr><td>7</td><td>666508.67</td><td>2728833.08</td><td>633.75</td></tr>
+            <tr><td>8</td><td>666507.00</td><td>2728831.98</td><td>633.75</td></tr>
+            <tr><td>9</td><td>666510.04</td><td>2728829.79</td><td>633.77</td></tr>
+            <tr><td>10</td><td>666513.40</td><td>2728824.63</td><td>633.81</td></tr>
+            <tr><td>11</td><td>666512.27</td><td>2728823.90</td><td>633.81</td></tr>
+            <tr><td>12</td><td>666511.68</td><td>2728831.28</td><td>633.77</td></tr>
+            <tr><td>13</td><td>666508.79</td><td>2728829.47</td><td>633.77</td></tr>
+        </table>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

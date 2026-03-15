@@ -297,8 +297,8 @@ async def process_step3(
             checklist_dicts
         )
         
-        extracted_discipline = extracted_drawing_data["extracted_discipline"]
-        extracted_work_type = extracted_drawing_data["extracted_work_type"]
+        extracted_discipline = extracted_drawing_data.get("extracted_discipline", "")
+        extracted_work_type = extracted_drawing_data.get("extracted_work_type", "")
 
         # Validate document alignment
         validate_document_alignment(
@@ -312,6 +312,7 @@ async def process_step3(
         session.grid_lines = extracted_drawing_data.get("grid_lines")
         session.levels = extracted_drawing_data.get("levels")
         session.zone = extracted_drawing_data.get("zone")
+        session.all_drawing_data = extracted_drawing_data # Store the complete JSON response
         
         session.current_step = 3
         session.status = "DRAWING_EXTRACTED" # New status
@@ -327,7 +328,8 @@ async def process_step3(
             "extracted_work_type": extracted_work_type,     # For frontend display
             "grid_lines": session.grid_lines,
             "levels": session.levels,
-            "zone": session.zone
+            "zone": session.zone,
+            "all_drawing_data": extracted_drawing_data
         }
     except Exception as e:
         logger.error(f"Error in Step 3: {str(e)}")
@@ -376,6 +378,7 @@ def get_session(session_id: str, db: Session = Depends(get_db)):
         "grid_lines": session.grid_lines,             # New field
         "levels": session.levels,                     # New field
         "zone": session.zone,                         # New field
+        "all_drawing_data": session.all_drawing_data,
         "created_at": session.created_at.isoformat() if session.created_at else None
     }
 

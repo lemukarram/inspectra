@@ -22,6 +22,24 @@
         .nav-link {
             cursor: pointer;
         }
+        .json-tree ul {
+            list-style-type: none;
+            padding-left: 20px;
+            margin: 5px 0;
+            border-left: 2px solid #e0e0e0;
+        }
+        .json-tree li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-family: Arial, sans-serif;
+        }
+        .json-key {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .json-value {
+            color: #444;
+        }
     </style>
 </head>
 <body>
@@ -187,6 +205,9 @@
                 <div class="mb-3">
                     <label class="form-label">Zone/Area Name:</label>
                     <p id="displayZone" class="form-control-plaintext"></p>
+                </div>
+                <div class="mb-3">
+                    <div id="all_drawing_data" class="json-tree"></div>
                 </div>
 
                 <hr class="my-4">

@@ -26,6 +26,7 @@ class WIRSession(Base):
     grid_lines = Column(JSONB, nullable=True)
     levels = Column(JSONB, nullable=True)
     zone = Column(String, nullable=True)
+    all_drawing_data = Column(JSONB, nullable=True)
     
     # Relationship to checklist items
     checklist_items = relationship("ChecklistItem", back_populates="session", cascade="all, delete-orphan")

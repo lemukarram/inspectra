@@ -28,7 +28,15 @@ class DrawingProcessor:
 
         """
         Step 3: Drawing & Location Processor
-        Extracts discipline, work type, and location details (grid lines, levels, zones) from a 2D drawing (PDF/Image)
+        Extracts discipline, work type, location details (grid lines, levels, zones), 
+        Drawing Number, Revision, Approval Status, Grid Axes (e.g., 1-5, A-D), and Floor/Level from a 2D drawing (PDF/Image)
+        Also extracts followings if availabe in the drawing:
+        Civil/Structural information: Read Reinforcement Tables for bar sizes and spacing.
+        Architectural information: Read Room Finish Schedules for ceiling, wall, and floor materials.
+        Electrical/Low Current information: Read Legends for conduit types and mounting heights.
+        Mechanical information: Read Pipe/Duct Schedules for diameters and insulation types.
+        Survey information: Extract Benchmarks and Reduced Levels (RL).
+        Landscape/Facade/HSE information: Extract specific technical notes or material callouts relevant to the plan view
         using Gemini Vision, referencing the WIR Sample and checklist items.
         
         Args:
@@ -37,7 +45,7 @@ class DrawingProcessor:
             checklist_items (List[Dict]): List of verified checklist items (from Step 1 & 2).
 
         Returns:
-            Dict: A dictionary containing extracted 'extracted_discipline', 'extracted_work_type', 'grid_lines', 'levels', and 'zone'.
+            Dict: A dictionary containing extracted values in key value format.
         """
         
         # Prepare image from drawing for Gemini Vision
@@ -75,11 +83,19 @@ class DrawingProcessor:
             "Identify the overall 'Discipline' (e.g., Civil, Electrical, Mechanical, Structural, Architectural) and the specific 'Work Type' (e.g., Concrete Installation, Small Power Wiring, HVAC Ductwork, Steel Erection, Wall Partitioning) that this drawing primarily covers, typically found in the title block or general notes. These should be high-level and clear.",
             "Additionally, identify the master location details for the overall drawing based on typical construction drawing conventions.",
             "Specifically, extract the 'Grid Lines' (e.g., A-D, 1-3, etc.), 'Levels/Elevations' (e.g., Level 1, +100.00), and the general 'Room/Area Name' or 'Zone' the drawing pertains to.",
+            "additionally identify Drawing Number, Revision, Approval Status, Grid Axes (e.g., 1-5, A-D), and Floor/Level from a 2D drawing (PDF/Image)"
+            "Also extracts followings if availabe in the drawing:"
+            "Civil/Structural information: Read Reinforcement Tables for bar sizes and spacing."
+            "Architectural information: Read Room Finish Schedules for ceiling, wall, and floor materials."
+            "Electrical/Low Current information: Read Legends for conduit types and mounting heights."
+            "Mechanical information: Read Pipe/Duct Schedules for diameters and insulation types."
+            "Survey information: Extract Benchmarks and Reduced Levels (RL)."
+            "Landscape/Facade/HSE information: Extract specific technical notes or material callouts relevant to the plan view"
             "Consider the following WIR Sample text for context regarding terminology and expected outputs:",
             wir_sample_text,
             "Also, here are the current checklist items which may provide additional context, though focus on master drawing locations:",
             json.dumps(checklist_items),
-            "Output the results as a JSON object with the following keys: 'extracted_discipline' (string), 'extracted_work_type' (string), 'grid_lines' (list of strings), 'levels' (list of strings), and 'zone' (string). Return ONLY the JSON object.",
+            "Output the results as a JSON object A dictionary containing extracted values in key value format. Return ONLY the JSON object.",
         ]
 
         contents_for_gemini = prompt_parts_text + [pil_image] # Add PIL image directly
@@ -97,8 +113,9 @@ class DrawingProcessor:
                 content = content[7:-3].strip()
             elif content.startswith("```"):
                 content = content[3:-3].strip()
-            result = json.loads(content)
             
+            result = json.loads(content)
+        
             # Basic validation of the result structure
             if not isinstance(result, dict):
                 raise ValueError("Gemini response is not a dictionary.")

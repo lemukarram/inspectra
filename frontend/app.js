@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingDrawing = document.getElementById('loadingDrawing');
     const displayGridLines = document.getElementById('displayGridLines');
     const displayLevels = document.getElementById('displayLevels');
+    const all_drawing_data = document.getElementById('all_drawing_data');
     const displayZone = document.getElementById('displayZone');
     const editGridLines = document.getElementById('editGridLines');
     const editLevels = document.getElementById('editLevels');
@@ -319,6 +320,12 @@ document.addEventListener('DOMContentLoaded', function() {
             displayLevels.textContent = session.levels ? session.levels.join(', ') : 'N/A';
             displayZone.textContent = session.zone || 'N/A';
 
+            // Generate the HTML and append it to your div
+            
+            const finalHtml = buildDataTree(session.all_drawing_data);
+            all_drawing_data.innerHTML = finalHtml;
+            
+
             // Populate manual correction fields
             editGridLines.value = session.grid_lines ? session.grid_lines.join(', ') : '';
             editLevels.value = session.levels ? session.levels.join(', ') : '';
@@ -327,6 +334,44 @@ document.addEventListener('DOMContentLoaded', function() {
             showSection('step3UploadSection');
         }
     }
+
+
+    // Helper to replace underscores with spaces for readability
+    function formatLabel(key) {
+        return key.replace(/_/g, ' ');
+    }
+
+
+    // The recursive function to build the HTML
+    function buildDataTree(data) {
+        // Base case: if it's just a string or number, return the value
+        if (typeof data === 'string' || typeof data === 'number') {
+            return '<span class="json-value">' + data + '</span>';
+        }
+
+        // If it is an array, loop through it using native forEach
+        if (Array.isArray(data)) {
+            let html = '<ul>';
+            data.forEach(function(item) {
+                html += '<li>' + buildDataTree(item) + '</li>';
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // If it is an object, loop through its keys using Object.entries
+        if (typeof data === 'object' && data !== null) {
+            let html = '<ul>';
+            for (const [key, value] of Object.entries(data)) {
+                html += '<li><span class="json-key">' + formatLabel(key) + ':</span> ' + buildDataTree(value) + '</li>';
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        return '';
+    }
+
 
     // New Session Upload (Step 1)
     document.getElementById('uploadForm')?.addEventListener('submit', async function(e) {
